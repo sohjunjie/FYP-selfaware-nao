@@ -1,11 +1,14 @@
-from naoqi import ALProxy, ALBroker, ALModule
-# from websocket import create_connection
-import time
+import json
+import requests
 import sys
+import time
+from naoqi import ALProxy, ALBroker, ALModule
 import speech_recognition as sr
 
-ip_robot = "127.0.0.1"
-port_robot = 9559
+pc_addr = '192.168.0.102'
+pc_port = '8888'
+robot_ip = "127.0.0.1"
+robot_port = 9559
 prompt_path = '/home/nao/recordings/microphones/siri1.wav'
 prompt_endp = '/home/nao/recordings/microphones/siri2.wav'
 record_path = '/home/nao/recordings/microphones/temp.wav'
@@ -21,7 +24,7 @@ class WorldStimuliEventWatcher(ALModule):
     def __init__(self):
         ALModule.__init__(self, "stimuliEventWatcher")
         global memory
-        memory = ALProxy("ALMemory", ip_robot, port_robot)
+        memory = ALProxy("ALMemory", robot_ip, robot_port)
         memory.subscribeToEvent("ALBasicAwareness/HumanTracked",
                                 "stimuliEventWatcher",
                                 "onHumanTracked")
@@ -35,17 +38,20 @@ class WorldStimuliEventWatcher(ALModule):
                                 "stimuliEventWatcher",
                                 "onTouched")
 
-        # self.speech_reco = ALProxy("ALSpeechRecognition", ip_robot, port_robot)
-        self.audio_reco = ALProxy("ALAudioRecorder", ip_robot, port_robot)
-        self.audio_play = ALProxy("ALAudioPlayer", ip_robot, port_robot)
-        self.tts = ALProxy("ALTextToSpeech", ip_robot, port_robot)
+        # self.speech_reco = ALProxy("ALSpeechRecognition", robot_ip, robot_port)
+        self.audio_reco = ALProxy("ALAudioRecorder", robot_ip, robot_port)
+        self.audio_play = ALProxy("ALAudioPlayer", robot_ip, robot_port)
+        self.tts = ALProxy("ALTextToSpeech", robot_ip, robot_port)
         self.is_speech_reco_started = False
         self.is_sound_detection_started = True
-        try:
-            pass
-            # self.pc_ws = create_connection("ws://192.168.0.254:8888/ws")
-        except:
-            pass
+
+    def __request_pc(self, text):
+        payload = {'value': text}
+        r = requests.post('http://' + pc_addr + ':' + pc_port +'/api', data=payload)
+        if r.status_code != 200:
+            return []
+        else
+            return r.json()
 
     def say(self, msg):
         if self.is_speech_reco_started:
@@ -120,13 +126,13 @@ class WorldStimuliEventWatcher(ALModule):
             self.is_sound_detection_started = False
 
     def get_people_perception_data(self, id_person_tracked):
-        memory = ALProxy("ALMemory", ip_robot, port_robot)
+        memory = ALProxy("ALMemory", robot_ip, robot_port)
         memory_key = "PeoplePerception/Person/" + str(id_person_tracked) + \
                      "/PositionInWorldFrame"
         return memory.getData(memory_key)
 
     def get_people_expression_data(self, id_person_tracked):
-        memory = ALProxy("ALMemory", ip_robot, port_robot)
+        memory = ALProxy("ALMemory", robot_ip, robot_port)
         memory_key = "PeoplePerception/Person/" + str(id_person_tracked) + \
                      "/ExpressionProperties"
         return memory.getData(memory_key)
@@ -152,11 +158,11 @@ class WorldStimuliEventWatcher(ALModule):
 
 
 if __name__ == "__main__":
-    event_broker = ALBroker("event_broker", "0.0.0.0", 0, ip_robot, port_robot)
+    event_broker = ALBroker("event_broker", "0.0.0.0", 0, robot_ip, robot_port)
     global stimuliEventWatcher
     stimuliEventWatcher = WorldStimuliEventWatcher()
-    basic_awareness = ALProxy("ALBasicAwareness", ip_robot, port_robot)
-    motion = ALProxy("ALMotion", ip_robot, port_robot)
+    basic_awareness = ALProxy("ALBasicAwareness", robot_ip, robot_port)
+    motion = ALProxy("ALMotion", robot_ip, robot_port)
 
     #start
     motion.wakeUp()

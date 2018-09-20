@@ -43,7 +43,7 @@ def train_word2vec_model(corpus_file, output_name):
     if not (os.path.isfile(os.path.join(MODELS_DIR, '{:s}.vec'.format(output_file))) and
             os.path.isfile(os.path.join(MODELS_DIR, '{:s}.bin'.format(output_file)))
             ):
-        print 'Training word2vec on {:s} corpus..'.format(corpus_file)
+        print('Training word2vec on {:s} corpus..'.format(corpus_file))
         
         # Text8Corpus class for reading space-separated words file
         gs_model = Word2Vec(Text8Corpus(os.path.join(MODELS_DIR, corpus_file)), **params)
@@ -52,9 +52,9 @@ def train_word2vec_model(corpus_file, output_name):
         gs_model.wv.save_word2vec_format(os.path.join(MODELS_DIR, '{:s}.vec'.format(output_file)))
         gs_model.save(os.path.join(MODELS_DIR, '{:s}.bin'.format(output_file)))
 
-        print 'Saved gensim model as {:s}.vec'.format(output_file)
+        print('Saved gensim model as {:s}.vec'.format(output_file))
     else:
-        print 'Using existing model file {:s}'.format(output_file)
+        print('Using existing model file {:s}'.format(output_file))
 
 
 train_word2vec_model(corpus_file='text8', output_name='text8')
