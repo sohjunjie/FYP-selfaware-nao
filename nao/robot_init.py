@@ -45,11 +45,8 @@ class WorldStimuliEventWatcher(ALModule):
         self.is_human_tracked = False
 
     def say(self, msg):
-        if self.is_speech_reco_started:
-            self.stop_speech_reco()
-            self.tts.say(msg)
-            self.start_speech_reco()
-        else:
+        # robot can only speak when not recording speech
+        if self.is_speech_reco_started is False:
             self.tts.say(msg)
 
     def onHumanTracked(self, key, value, msg):
@@ -59,7 +56,6 @@ class WorldStimuliEventWatcher(ALModule):
         logging.info("got HumanTracked: detected person with ID:" + str(value))
         self.say("Hello there.")
         if value >= 0:  # found a new person
-            # self.start_speech_reco()
             position_human = self.get_people_perception_data(value)
             expression_human = self.get_people_expression_data(value)
             [x, y, z] = position_human
@@ -70,7 +66,6 @@ class WorldStimuliEventWatcher(ALModule):
         """ callback for event HumanLost """
         self.is_human_tracked = False
         logging.info("got HumanLost: lost human" + str(value))
-        # self.stop_speech_reco()
         self.start_sound_detection()
 
     def onFaceDetected(self, key, value, msg):
@@ -132,25 +127,6 @@ class WorldStimuliEventWatcher(ALModule):
         memory_key = "PeoplePerception/Person/" + str(id_person_tracked) + \
                      "/ExpressionProperties"
         return memory.getData(memory_key)
-
-    def start_speech_reco(self):
-        """ start asr when someone's detected in event handler class """
-        if not self.is_speech_reco_started:
-            try:
-                self.speech_reco.setVocabulary([], True)
-            except RuntimeError:
-                print "ASR already started"
-            self.speech_reco.setVisualExpression(True)
-            self.speech_reco.subscribe("BasicAwareness_Test")
-            self.is_speech_reco_started = True
-            print "start ASR"
-
-    def stop_speech_reco(self):
-        """ stop asr when someone's detected in event handler class """
-        if self.is_speech_reco_started:
-            self.speech_reco.unsubscribe("BasicAwareness_Test")
-            self.is_speech_reco_started = False
-            print "stop ASR"
 
 
 if __name__ == "__main__":
