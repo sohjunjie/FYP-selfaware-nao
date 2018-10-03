@@ -1,17 +1,12 @@
+import logging
 import json
-import requests
 import sys
 import time
+import threading
 from naoqi import ALProxy, ALBroker, ALModule
 import speech_recognition as sr
+import config as cf
 
-pc_addr = '192.168.0.102'
-pc_port = '8888'
-robot_ip = "127.0.0.1"
-robot_port = 9559
-prompt_path = '/home/nao/recordings/microphones/siri1.wav'
-prompt_endp = '/home/nao/recordings/microphones/siri2.wav'
-record_path = '/home/nao/recordings/microphones/temp.wav'
 
 # Global variable to store the stimuliEventWatcher module instance
 stimuliEventWatcher = None
@@ -24,7 +19,7 @@ class WorldStimuliEventWatcher(ALModule):
     def __init__(self):
         ALModule.__init__(self, "stimuliEventWatcher")
         global memory
-        memory = ALProxy("ALMemory", robot_ip, robot_port)
+        memory = ALProxy("ALMemory", cf.ROBOT_IP, cf.ROBOT_PORT)
         memory.subscribeToEvent("ALBasicAwareness/HumanTracked",
                                 "stimuliEventWatcher",
                                 "onHumanTracked")
@@ -37,21 +32,17 @@ class WorldStimuliEventWatcher(ALModule):
         memory.subscribeToEvent("TouchChanged",
                                 "stimuliEventWatcher",
                                 "onTouched")
+        memory.subscribeToEvent("FaceDetected",
+                                "stimuliEventWatcher",
+                                "onFaceDetected")
 
-        # self.speech_reco = ALProxy("ALSpeechRecognition", robot_ip, robot_port)
-        self.audio_reco = ALProxy("ALAudioRecorder", robot_ip, robot_port)
-        self.audio_play = ALProxy("ALAudioPlayer", robot_ip, robot_port)
-        self.tts = ALProxy("ALTextToSpeech", robot_ip, robot_port)
+        # self.speech_reco = ALProxy("ALSpeechRecognition", cf.ROBOT_IP, cf.ROBOT_PORT)
+        self.audio_reco = ALProxy("ALAudioRecorder", cf.ROBOT_IP, cf.ROBOT_PORT)
+        self.audio_play = ALProxy("ALAudioPlayer", cf.ROBOT_IP, cf.ROBOT_PORT)
+        self.tts = ALProxy("ALTextToSpeech", cf.ROBOT_IP, cf.ROBOT_PORT)
         self.is_speech_reco_started = False
         self.is_sound_detection_started = True
-
-    def __request_pc(self, text):
-        payload = {'value': text}
-        r = requests.post('http://' + pc_addr + ':' + pc_port +'/api', data=payload)
-        if r.status_code != 200:
-            return []
-        else
-            return r.json()
+        self.is_human_tracked = False
 
     def say(self, msg):
         if self.is_speech_reco_started:
@@ -62,9 +53,10 @@ class WorldStimuliEventWatcher(ALModule):
             self.tts.say(msg)
 
     def onHumanTracked(self, key, value, msg):
-        self.stop_sound_detection()
         """ callback for event HumanTracked """
-        print "got HumanTracked: detected person with ID:", str(value)
+        self.is_human_tracked = True
+        self.stop_sound_detection()
+        logging.info("got HumanTracked: detected person with ID:" + str(value))
         self.say("Hello there.")
         if value >= 0:  # found a new person
             # self.start_speech_reco()
@@ -76,9 +68,13 @@ class WorldStimuliEventWatcher(ALModule):
 
     def onHumanLost(self, key, value, msg):
         """ callback for event HumanLost """
-        print "got HumanLost: lost human", str(value)
+        self.is_human_tracked = False
+        logging.info("got HumanLost: lost human" + str(value))
         # self.stop_speech_reco()
         self.start_sound_detection()
+
+    def onFaceDetected(self, key, value, msg):
+        print "key:", str(key), " value:", str(value)
 
     def onSoundLocated(self, key, value, msg):
         self.tts.say("I heard something.")
@@ -91,17 +87,17 @@ class WorldStimuliEventWatcher(ALModule):
             self.is_speech_reco_started = not self.is_speech_reco_started
             if self.is_speech_reco_started is False:
                 self.audio_reco.stopMicrophonesRecording()
-                self.audio_play.playFile(prompt_endp, 0.7, 0)
+                self.audio_play.playFile(cf.PROMPT_ENDP, 0.7, 0)
                 time.sleep(0.1)
 
                 r = sr.Recognizer()
-                with sr.WavFile(record_path) as source:
+                with sr.WavFile(cf.RECORD_PATH) as source:
                     audio = r.record(source)
                 print "You said: " + r.recognize_google(audio)
 
             else:
-                self.audio_play.playFile(prompt_path, 0.7, 0)
-                self.audio_reco.startMicrophonesRecording(record_path, 'wav', 16000, (0,0,1,0))
+                self.audio_play.playFile(cf.PROMPT_PATH, 0.7, 0)
+                self.audio_reco.startMicrophonesRecording(cf.RECORD_PATH, 'wav', 16000, (0,0,1,0))
 
             try:
                 memory.subscribeToEvent("TouchChanged",
@@ -126,13 +122,13 @@ class WorldStimuliEventWatcher(ALModule):
             self.is_sound_detection_started = False
 
     def get_people_perception_data(self, id_person_tracked):
-        memory = ALProxy("ALMemory", robot_ip, robot_port)
+        memory = ALProxy("ALMemory", cf.ROBOT_IP, cf.ROBOT_PORT)
         memory_key = "PeoplePerception/Person/" + str(id_person_tracked) + \
                      "/PositionInWorldFrame"
         return memory.getData(memory_key)
 
     def get_people_expression_data(self, id_person_tracked):
-        memory = ALProxy("ALMemory", robot_ip, robot_port)
+        memory = ALProxy("ALMemory", cf.ROBOT_IP, cf.ROBOT_PORT)
         memory_key = "PeoplePerception/Person/" + str(id_person_tracked) + \
                      "/ExpressionProperties"
         return memory.getData(memory_key)
@@ -158,11 +154,12 @@ class WorldStimuliEventWatcher(ALModule):
 
 
 if __name__ == "__main__":
-    event_broker = ALBroker("event_broker", "0.0.0.0", 0, robot_ip, robot_port)
+    cf.init()
+    event_broker = ALBroker("event_broker", "0.0.0.0", 0, cf.cf.ROBOT_IP, cf.cf.ROBOT_PORT)
     global stimuliEventWatcher
     stimuliEventWatcher = WorldStimuliEventWatcher()
-    basic_awareness = ALProxy("ALBasicAwareness", robot_ip, robot_port)
-    motion = ALProxy("ALMotion", robot_ip, robot_port)
+    basic_awareness = ALProxy("ALBasicAwareness", cf.ROBOT_IP, cf.ROBOT_PORT)
+    motion = ALProxy("ALMotion", cf.ROBOT_IP, cf.ROBOT_PORT)
 
     #start
     motion.wakeUp()

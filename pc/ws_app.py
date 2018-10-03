@@ -2,6 +2,8 @@ from gensim.models import Word2Vec
 from tornado import websocket, web, ioloop
 import json
 import os
+import time
+
 
 cl = []
 MODELS_DIR = 'models/'
@@ -19,10 +21,17 @@ class SocketHandler(websocket.WebSocketHandler):
 
     def on_message(self, message):
         print("receive " + message)
-        send_message = {}
-        send_message['data'] = message
-        for conn in cl:
-            conn.write_message(send_message)
+        robot_message = json.loads(message)
+
+        if robot_message['type'] == 'reflect':
+            print(robot_message['data'])
+
+        if robot_message['type'] == 'respond':
+            time.sleep(1)
+            send_message = {}
+            send_message['data'] = 'I have received message'
+            for conn in cl:
+                conn.write_message(json.dumps(send_message))
 
     def on_close(self):
         if self in cl:
