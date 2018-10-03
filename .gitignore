@@ -1,2 +1,3 @@
 venv/
 pc/models/
+*.pyc
