@@ -1,4 +1,4 @@
 venv/
 pc/models/
 *.pyc
-config.py
+pc/config.py
