@@ -1,6 +1,5 @@
 import json
 import time
-import logging
 from websocket import create_connection
 
 
@@ -34,6 +33,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    import config as cf
-    cf.init()
-    logging.info('test')
