@@ -4,13 +4,11 @@ import sys
 import time
 import threading
 from naoqi import ALProxy, ALBroker, ALModule
-import speech_recognition as sr
 import config as cf
 
 
 # Global variable to store the stimuliEventWatcher module instance
 stimuliEventWatcher = None
-memory = None
 
 
 class WorldStimuliEventWatcher(ALModule):
@@ -18,36 +16,31 @@ class WorldStimuliEventWatcher(ALModule):
 
     def __init__(self):
         ALModule.__init__(self, "stimuliEventWatcher")
-        global memory
-        memory = ALProxy("ALMemory", cf.ROBOT_IP, cf.ROBOT_PORT)
-        memory.subscribeToEvent("ALBasicAwareness/HumanTracked",
-                                "stimuliEventWatcher",
-                                "onHumanTracked")
-        memory.subscribeToEvent("ALBasicAwareness/HumanLost",
-                                "stimuliEventWatcher",
-                                "onHumanLost")
-        memory.subscribeToEvent("ALSoundLocalization/SoundLocated",
-                                "stimuliEventWatcher",
-                                "onSoundLocated")
-        memory.subscribeToEvent("TouchChanged",
-                                "stimuliEventWatcher",
-                                "onTouched")
-        memory.subscribeToEvent("FaceDetected",
-                                "stimuliEventWatcher",
-                                "onFaceDetected")
 
-        # self.speech_reco = ALProxy("ALSpeechRecognition", cf.ROBOT_IP, cf.ROBOT_PORT)
-        self.audio_reco = ALProxy("ALAudioRecorder", cf.ROBOT_IP, cf.ROBOT_PORT)
-        self.audio_play = ALProxy("ALAudioPlayer", cf.ROBOT_IP, cf.ROBOT_PORT)
+        self.dialog = ALProxy('ALDialog', cf.ROBOT_IP, cf.ROBOT_PORT)
+        self.dialog.setLanguage("English")
+
+        self.memory = ALProxy("ALMemory", cf.ROBOT_IP, cf.ROBOT_PORT)
+        self.memory.subscribeToEvent("ALBasicAwareness/HumanTracked",
+                                     "stimuliEventWatcher",
+                                     "onHumanTracked")
+        self.memory.subscribeToEvent("ALBasicAwareness/HumanLost",
+                                     "stimuliEventWatcher",
+                                     "onHumanLost")
+        self.memory.subscribeToEvent("ALSoundLocalization/SoundLocated",
+                                     "stimuliEventWatcher",
+                                     "onSoundLocated")
+        self.memory.subscribeToEvent("FaceDetected",
+                                     "stimuliEventWatcher",
+                                     "onFaceDetected")
+
         self.tts = ALProxy("ALTextToSpeech", cf.ROBOT_IP, cf.ROBOT_PORT)
-        self.is_speech_reco_started = False
         self.is_sound_detection_started = True
         self.is_human_tracked = False
+        self.is_dialog_detection_started = False
 
     def say(self, msg):
-        # robot can only speak when not recording speech
-        if self.is_speech_reco_started is False:
-            self.tts.say(msg)
+        self.tts.say(msg)
 
     def onHumanTracked(self, key, value, msg):
         """ callback for event HumanTracked """
@@ -66,45 +59,26 @@ class WorldStimuliEventWatcher(ALModule):
         """ callback for event HumanLost """
         self.is_human_tracked = False
         logging.info("got HumanLost: lost human" + str(value))
+        self.stop_sound_detection()
         self.start_sound_detection()
 
     def onFaceDetected(self, key, value, msg):
         print "key:", str(key), " value:", str(value)
+        self.tts.say('hello stranger')
+        self.start_sound_detection()
+
+    def onDialogDetected(self, key, value, msg):
+        self.tts.say(value)
+        logging.info("heard:" + value)
 
     def onSoundLocated(self, key, value, msg):
         self.tts.say("I heard something.")
         # print "sound detected at position=", value
 
-    def onTouched(self, strVarName, value):
-        if value[0][0] == 'Head':
-            memory.unsubscribeToEvent("TouchChanged", "stimuliEventWatcher")
-
-            self.is_speech_reco_started = not self.is_speech_reco_started
-            if self.is_speech_reco_started is False:
-                self.audio_reco.stopMicrophonesRecording()
-                self.audio_play.playFile(cf.PROMPT_ENDP, 0.7, 0)
-                time.sleep(0.1)
-
-                r = sr.Recognizer()
-                with sr.WavFile(cf.RECORD_PATH) as source:
-                    audio = r.record(source)
-                print "You said: " + r.recognize_google(audio)
-
-            else:
-                self.audio_play.playFile(cf.PROMPT_PATH, 0.7, 0)
-                self.audio_reco.startMicrophonesRecording(cf.RECORD_PATH, 'wav', 16000, (0,0,1,0))
-
-            try:
-                memory.subscribeToEvent("TouchChanged",
-                                        "stimuliEventWatcher",
-                                        "onTouched")
-            except RuntimeError:
-                print "TC already started"
-
     def start_sound_detection(self):
         if not self.is_sound_detection_started:
             try:
-                memory.subscribeToEvent("ALSoundLocalization/SoundLocated",
+                self.memory.subscribeToEvent("ALSoundLocalization/SoundLocated",
                                         "stimuliEventWatcher",
                                         "onSoundLocated")
             except RuntimeError:
@@ -113,20 +87,35 @@ class WorldStimuliEventWatcher(ALModule):
 
     def stop_sound_detection(self):
         if self.is_sound_detection_started:
-            memory.unsubscribeToEvent("ALSoundLocalization/SoundLocated", "stimuliEventWatcher")
+            self.memory.unsubscribeToEvent("ALSoundLocalization/SoundLocated", "stimuliEventWatcher")
             self.is_sound_detection_started = False
 
+    def start_dialog_detection(self):
+        if not self.is_dialog_detection_started:
+            try:
+                self.memory.subscribeToEvent("Dialog/LastInput",
+                                            "stimuliEventWatcher",
+                                            "onDialogDetected")
+            except RuntimeError:
+                print "DL already started"
+            self.is_dialog_detection_started = True
+
+    def stop_dialog_detection(self):
+        if self.is_dialog_detection_started::
+            self.memory.unsubscribeToEvent("Dialog/LastInput", "stimuliEventWatcher")
+            self.is_dialog_detection_started = False
+
     def get_people_perception_data(self, id_person_tracked):
-        memory = ALProxy("ALMemory", cf.ROBOT_IP, cf.ROBOT_PORT)
+        self.memory = ALProxy("ALMemory", cf.ROBOT_IP, cf.ROBOT_PORT)
         memory_key = "PeoplePerception/Person/" + str(id_person_tracked) + \
                      "/PositionInWorldFrame"
-        return memory.getData(memory_key)
+        return self.memory.getData(memory_key)
 
     def get_people_expression_data(self, id_person_tracked):
-        memory = ALProxy("ALMemory", cf.ROBOT_IP, cf.ROBOT_PORT)
+        self.memory = ALProxy("ALMemory", cf.ROBOT_IP, cf.ROBOT_PORT)
         memory_key = "PeoplePerception/Person/" + str(id_person_tracked) + \
                      "/ExpressionProperties"
-        return memory.getData(memory_key)
+        return self.memory.getData(memory_key)
 
 
 if __name__ == "__main__":

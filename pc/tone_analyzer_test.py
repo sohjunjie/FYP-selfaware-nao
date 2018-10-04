@@ -2,6 +2,7 @@ from watson_developer_cloud import ToneAnalyzerV3
 from config import TONEANALYZER_API_KEY, TONEANALYZER_API_URL, TONEANALYZER_API_VER
 import json
 
+
 # :sample return:
 # {
 #   "document_tone": {
@@ -14,7 +15,6 @@ import json
 #     ]
 #   }
 # }
-
 
 tone_analyzer = ToneAnalyzerV3(
     version=TONEANALYZER_API_VER,
