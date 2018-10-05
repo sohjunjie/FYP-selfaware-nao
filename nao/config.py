@@ -15,7 +15,9 @@ def init():
                         level=logging.INFO)
 
     global WS
+    WS = None
     try:
         WS = create_connection("ws://" + PC_ADDR +  ":" + PC_PORT + "/ws")
+        logging.info('connected to remote laptop')
     except:
-        WS = None
+        logging.info('fail to connect to remote laptop')

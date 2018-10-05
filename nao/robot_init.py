@@ -7,7 +7,6 @@ from naoqi import ALProxy, ALBroker, ALModule
 import config as cf
 
 
-# Global variable to store the stimuliEventWatcher module instance
 global stimuliEventWatcher
 
 
@@ -71,10 +70,12 @@ class WorldStimuliEventWatcher(ALModule):
         self.start_sound_detection()
 
     def onFaceDetected(self, key, value, msg):
-        if value == []:  # empty value when the face disappears
+        if value == []:
+            # empty value when the face disappears
             self.got_face = False
             self.human_tracked = None
-        elif not self.got_face:  # only speak the first time a face appears
+        elif not self.got_face:
+            # only speak the first time a face appears
             self.got_face = True
             self.human_tracked = value[1][0][1][2] if value[1][0][1][2] != '' else 'stranger'
             self.say("I see you, " + self.human_tracked + ".")
