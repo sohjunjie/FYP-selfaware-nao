@@ -6,9 +6,6 @@ PC_ADDR = '192.168.0.102'
 PC_PORT = '8888'
 ROBOT_IP = '127.0.0.1'
 ROBOT_PORT = 9559
-PROMPT_PATH = '/home/nao/recordings/microphones/siri1.wav'
-PROMPT_ENDP = '/home/nao/recordings/microphones/siri2.wav'
-RECORD_PATH = '/home/nao/recordings/microphones/temp.wav'
 
 
 def init():
