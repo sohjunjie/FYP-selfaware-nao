@@ -28,6 +28,11 @@ class WorldStimuliEventWatcher(ALModule):
         self.dialog_topic = self.dialog.loadTopic('/var/persistent/home/nao/HumanDialog/HumanDialog_enu.top')
         self.dialog.subscribe('myModule')
         self.dialog.activateTopic(self.dialog_topic)
+        self.basic_awareness = ALProxy("ALBasicAwareness", cf.ROBOT_IP, cf.ROBOT_PORT)
+        self.basic_awareness.setEngagementMode("FullyEngaged")
+        self.basic_awareness.startAwareness()
+        self.motion = ALProxy("ALMotion", cf.ROBOT_IP, cf.ROBOT_PORT)
+        self.motion.wakeUp()
 
         self.memory = ALProxy("ALMemory", cf.ROBOT_IP, cf.ROBOT_PORT)
         self.memory.subscribeToEvent("ALBasicAwareness/HumanTracked",
@@ -127,20 +132,14 @@ class WorldStimuliEventWatcher(ALModule):
         self.dialog.unsubscribe('myModule')
         self.dialog.deactivateTopic(self.dialog_topic)
         self.dialog.unloadTopic(self.dialog_topic)
+        self.basic_awareness.stopAwareness()
+        self.motion.rest()
 
 
 if __name__ == "__main__":
     cf.init()
     event_broker = ALBroker("event_broker", "0.0.0.0", 0, cf.ROBOT_IP, cf.ROBOT_PORT)
-    global stimuliEventWatcher
     stimuliEventWatcher = WorldStimuliEventWatcher()
-    basic_awareness = ALProxy("ALBasicAwareness", cf.ROBOT_IP, cf.ROBOT_PORT)
-    motion = ALProxy("ALMotion", cf.ROBOT_IP, cf.ROBOT_PORT)
-
-    #start
-    motion.wakeUp()
-    basic_awareness.setEngagementMode("FullyEngaged")
-    basic_awareness.startAwareness()
 
     #loop on, wait for events until interruption
     try:
@@ -149,7 +148,5 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print "Interrupted by user, shutting down"
         stimuliEventWatcher.on_stop()
-        basic_awareness.stopAwareness()
-        motion.rest()
         event_broker.shutdown()
         sys.exit(0)
