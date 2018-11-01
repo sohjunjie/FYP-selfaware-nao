@@ -1,4 +1,7 @@
 venv/
+
 pc/models/
-*.pyc
 pc/config.py
+/__pycache__
+*.pyc
+*.sqlite

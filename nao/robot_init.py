@@ -22,7 +22,7 @@ class WorldStimuliEventWatcher(ALModule):
         # with open('dictionary.txt') as f:
         #     self.asr.setVocabulary(['hello', 'robot', 'cool'], False)
         # self.asr.pause(False)
-
+        self.al_mood = ALProxy("ALMood", cf.ROBOT_IP, cf.ROBOT_PORT)
         self.dialog = ALProxy('ALDialog', cf.ROBOT_IP, cf.ROBOT_PORT)
         self.dialog.setLanguage("English")
         self.dialog_topic = self.dialog.loadTopic('/var/persistent/home/nao/HumanDialog/HumanDialog_enu.top')
@@ -56,7 +56,9 @@ class WorldStimuliEventWatcher(ALModule):
         self.human_tracked = None
 
     def say(self, msg):
+        self.stop_dialog_detection()
         self.tts.say(msg)
+        self.start_dialog_detection()
 
     def onHumanTracked(self, key, value, msg):
         """ callback for event HumanTracked """
@@ -74,6 +76,19 @@ class WorldStimuliEventWatcher(ALModule):
         self.stop_dialog_detection()
         self.start_sound_detection()
 
+        # scenario5: human leaves conversation
+        experience = {
+            'subject': 'me',
+            'target': None,
+            'physicalAct': 'observing',
+            'speech': None,
+            'ambianceEmotion': self.al_mood.ambianceState()
+        }
+        # [emotionalState, datetime, place] details capture in remote laptop
+        cf.WS.send(json.dumps(experience))
+        # robot wait for remote laptop response to decide response for human
+        response = cf.WS.recv()
+
     def onFaceDetected(self, key, value, msg):
         if value == []:
             # empty value when the face disappears
@@ -85,14 +100,35 @@ class WorldStimuliEventWatcher(ALModule):
             self.human_tracked = value[1][0][1][2] if value[1][0][1][2] != '' else 'stranger'
             self.say("I see you, " + self.human_tracked + ".")
 
+            # scenario1: robot see human
+            experience = {
+                'subject': 'me',
+                'target': self.human_tracked,
+                'physicalAct': 'observing',
+                'speech': None,
+                'ambianceEmotion': self.al_mood.ambianceState()
+            }
+            # [emotionalState, datetime, place] details capture in remote laptop
+            cf.WS.send(json.dumps(experience))
+            # robot wait for remote laptop response to decide response for human
+            response = cf.WS.recv()
+
     def onDialogDetected(self, key, value, msg):
         if not value:
             return
-        self.stop_dialog_detection()
         if self.got_face and self.human_tracked:
-            self.say(self.human_tracked + ", you said " + value)
-            logging.info("heard: " + value)
-        self.start_dialog_detection()
+            # scenario3: human respond to robot
+            experience = {
+                'subject': self.human_tracked,
+                'target': 'me',
+                'physicalAct': 'talking',
+                'speech': value,
+                'ambianceEmotion': self.al_mood.ambianceState()
+            }
+            # [emotionalState, datetime, place] details capture in remote laptop
+            cf.WS.send(json.dumps(experience))
+            # robot wait for remote laptop response to decide response for human
+            response = cf.WS.recv()
 
     def onSoundLocated(self, key, value, msg):
         self.tts.say("I heard something.")
