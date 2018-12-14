@@ -1,7 +1,7 @@
 # from gensim.models import Word2Vec
 from tornado import websocket, web, ioloop
 from datetime import datetime as dt
-from apis.text_tone_analyzer import get_tone_from_text
+from apis.text_tone_analyzer import ToneAnalyzer
 from apis.geocoder_ip import get_robot_location
 
 import json
@@ -15,6 +15,10 @@ cl = []
 
 
 class SocketHandler(websocket.WebSocketHandler):
+
+    def __init__(self):
+        self.ta = ToneAnalyzer()
+
     def check_origin(self, origin):
         return True
 
@@ -25,8 +29,9 @@ class SocketHandler(websocket.WebSocketHandler):
 
     def on_message(self, message):
         print("receive " + message)
+
         robot_experience = json.loads(message)
-        robot_experience['emotionalState'] = list(get_tone_from_text(robot_experience['speech']).values())
+        robot_experience['emotionalState'] = list(self.ta.get_tone_from_text(robot_experience['speech']).values())
         robot_experience['datetime'] = dt.now()
         robot_experience['place'] = get_robot_location()
 
