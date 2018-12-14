@@ -84,6 +84,11 @@ class WorldStimuliEventWatcher(ALModule):
             'speech': None,
             'ambianceEmotion': self.al_mood.ambianceState()
         }
+        # AmbianceData =
+        # {
+        # "agitationLevel" : value,
+        # "calmLevel" : value
+        # }
         # [emotionalState, datetime, place] details capture in remote laptop
         cf.WS.send(json.dumps(experience))
         # robot wait for remote laptop response to decide response for human
