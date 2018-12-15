@@ -6,6 +6,7 @@ from decimal import Decimal
 db = Database()
 db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
 
+
 class Experiential(db.Entity):
     subject = Required(str)
     target = Optional(str)
@@ -81,10 +82,6 @@ class IdentityProperties(db.Entity):
 #     pass
 
 
-def init_database():
-    db.generate_mapping(create_tables=True)
-
-
 def populate_database():
     i = Identity(name='silva')
     ip1 = IdentityProperties(property_name='age', property_type='int', property_value_int=3, person=i)
@@ -112,11 +109,15 @@ def populate_database():
     ipa = SocalProperties(property_name='wealth', property_type='decimal', property_value_decimal=10.00, person=s)
 
     commit()
+
+
+db.generate_mapping(create_tables=True)
+
 """
 from database.definition import init_database
 from database.definition import *
 from pony.orm import *
-init_database()
+populate_database()
 """
 
 # EXAMPLE CODE
