@@ -4,8 +4,8 @@ from DialogueActTrain import DialogueActTrain as DA
 
 """
 [usage]
-from DialogueActTagger import DialogueActTagger
-da = DialogueActTagger('model1')
+from apis.dialogue_act.DialogueActTagger import DialogueActTagger
+da = DialogueActTagger('apis\dialogue_act\model1')
 da.dialogue_act_tag('tell me about yourself')
 """
 
