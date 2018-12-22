@@ -3,6 +3,7 @@ from tornado import websocket, web, ioloop
 from datetime import datetime as dt
 from apis.text_tone_analyzer import ToneAnalyzer
 from apis.geocoder_ip import get_robot_location
+from awareness import RobotAwareness
 
 import json
 import os
@@ -18,6 +19,7 @@ class SocketHandler(websocket.WebSocketHandler):
 
     def __init__(self):
         self.ta = ToneAnalyzer()
+        self.robotAwareness = RobotAwareness(self)
 
     def check_origin(self, origin):
         return True
@@ -35,16 +37,18 @@ class SocketHandler(websocket.WebSocketHandler):
         robot_experience['datetime'] = dt.now()
         robot_experience['place'] = get_robot_location()
 
-        send_message = {}
-        send_message['data'] = 'I have received message'
-        self.command_robot(send_message)
+        self.robotAwareness.interpret_robot_experience(robot_experience)
+
+        # send_message = {}
+        # send_message['data'] = 'I have received message'
+        # self.command_robot_speak(send_message)
 
     def on_close(self):
         if self in cl:
             cl.remove(self)
             print('1 disconnected...')
 
-    def command_robot(self, message):
+    def command_robot_speak(self, message):
         """ encode dictionary message command to json and forward to robot """
         for conn in cl:
             conn.write_message(json.dumps(message))

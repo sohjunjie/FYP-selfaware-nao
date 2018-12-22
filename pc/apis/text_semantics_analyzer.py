@@ -34,7 +34,7 @@ class SemanticsAnalyzer():
             return []
 
         response = self.semantics_analyzer.analyze(
-            text='IBM has one of the largest workforces in the world',
+            text=text,
             features=Features(semantic_roles=SemanticRolesOptions())).get_result()
 
         return (response['semantic_roles'] if 'semantic_roles' in response else [])

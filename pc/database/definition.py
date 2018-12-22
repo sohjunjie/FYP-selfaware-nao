@@ -1,7 +1,8 @@
 from pony.orm import *
+from pony.orm.core import EntityMeta
 from datetime import datetime
 from decimal import Decimal
-
+# from pony import orm
 
 db = Database()
 db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
@@ -33,13 +34,13 @@ class Mental(db.Entity):
 
 
 class Social(db.Entity):
-    name = Required(str)
+    name = Required(str, unique=True)
     relationship = Required(str)
     identity = Set('SocalProperties')
 
 
 class Identity(db.Entity):
-    name = Required(str)
+    name = Required(str, unique=True)
     identity = Set('IdentityProperties')
 
 
@@ -80,6 +81,32 @@ class IdentityProperties(db.Entity):
 
 # class Physical(db.Entity):
 #     pass
+
+
+def upsert(cls, get, set=None):
+    """
+    Interacting with Pony entities.
+
+    :param cls: The actual entity class
+    :param get: Identify the object (e.g. row) with this dictionary
+    :param set: 
+    :return:
+    """
+    # does the object exist
+    assert isinstance(cls, EntityMeta), "{cls} is not a database entity".format(cls=cls)
+
+    # if no set dictionary has been specified
+    set = set or {}
+
+    if not cls.exists(**get):
+        # make new object
+        return cls(**set, **get)
+    else:
+        # get the existing object
+        obj = cls.get(**get)
+        for key, value in set.items():
+            obj.__setattr__(key, value)
+        return obj
 
 
 def populate_database():

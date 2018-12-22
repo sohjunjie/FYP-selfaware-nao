@@ -29,6 +29,14 @@ class Interpreter(Thread):
         }
         dialog_acts = [{'dimension': 'SocialObligationManagement',
                         'communicative_function': 'Salutation'}]
+        semantics = [{'subject': {'text': 'my favourite color'},
+                      'sentence': 'my favourite color is blue',
+                      'object': {'text': 'blue'},
+                      'action': {'verb': {'text': 'be',
+                                          'tense': 'present'},
+                                 'text': 'is',
+                                 'normalized': 'be'}
+                     }]
         """
         # store robot experience to experiential aspect
         self.awareness.memory.save_experiential(robot_exp)
