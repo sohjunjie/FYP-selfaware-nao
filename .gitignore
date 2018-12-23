@@ -4,11 +4,11 @@
 venv/
 
 pc/models/
-pc/config.py
 /__pycache__
 *.pyc
 *.sqlite
 
+jars/
 model0/
 model1/
 AMI/corpus
