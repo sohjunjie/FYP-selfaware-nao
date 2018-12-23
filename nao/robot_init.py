@@ -81,7 +81,7 @@ class WorldStimuliEventWatcher(ALModule):
             'subject': 'me',
             'target': None,
             'physicalAct': 'observing',
-            'speech': None,
+            'speech': '',
             'ambianceEmotion': self.al_mood.ambianceState()
         }
         # AmbianceData =
@@ -110,7 +110,7 @@ class WorldStimuliEventWatcher(ALModule):
                 'subject': 'me',
                 'target': self.human_tracked,
                 'physicalAct': 'observing',
-                'speech': None,
+                'speech': '',
                 'ambianceEmotion': self.al_mood.ambianceState()
             }
             # [emotionalState, datetime, place] details capture in remote laptop
