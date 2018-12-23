@@ -15,35 +15,6 @@ FEEDBACK_STATE = 9
 CLOSING_STATE = 10
 END_STATE = 11
 
-TIME_KEYWORDS = [
-    'the day before yesterday',
-    'the day after tomorrow',
-    'the day before',
-    'last century',
-    'next month',
-    'last month',
-    'yesterday',
-    'next week',
-    'last year',
-    'last week',
-    'millenium',
-    'next year',
-    'just now',
-    'recently',
-    'tomorrow',
-    'century',
-    'weekend',
-    'before',
-    'decade',
-    'today',
-    'month',
-    'after',
-    'week',
-    'year',
-    'now',
-    'ago',
-    'day']
-
 
 class DialogueManager():
 
@@ -51,7 +22,7 @@ class DialogueManager():
         self.state = START_STATE
         self.context = {}
 
-    def advance_state(self, robot_exp, semantics, dialogue_acts):
+    def advance_state(self, robot_exp, semantic, temporals, dialogue_acts):
 
         if self.state == START_STATE:
             # advance to greeting state if dialogue act is salutation
@@ -72,28 +43,42 @@ class DialogueManager():
         elif (self.state == FEEDFORWARD_STATE) or \
             (self.state > FEEDFORWARD_STATE and self.state < FEEDBACK_STATE):
 
-            if self.conv_is_aboutme(robot_exp, semantics, dialogue_acts):
-                if self.conv_have_time(robot_exp, semantics, dialogue_acts):
+            # if CONVERSATION_EXCEPTION:
+            #     self.state = CONVERSATION_EXCEPT_STATE
+
+            # if HUMAN_INDICATE_FEEDBACK_STATE:
+            #     self.state = FEEDBACK_STATE
+
+            # if HUMAN_INDICATE_CLOSING:
+            #     self.state = CLOSING_STATE
+
+            if self.conv_is_aboutme(robot_exp, semantic, dialogue_acts):
+                if self.conv_have_time(temporals):
                     self.state = CONVERSATION_MYACTIVITY_STATE
                 else:
                     self.state = CONVERSATION_ABOUTME_STATE
 
-            if self.conv_is_abouthuman(robot_exp, semantics, dialogue_acts):
-                if self.conv_have_time(robot_exp, semantics, dialogue_acts):
+            elif self.conv_is_abouthuman(robot_exp, semantic, dialogue_acts):
+                if self.conv_have_time(temporals):
                     self.state = CONVERSATION_HUMANACTIVITY_STATE
                 else:
                     self.state = CONVERSATION_ABOUTHUMAN_STATE
 
-        elif self.state > FEEDFORWARD_STATE and self.state < FEEDBACK_STATE:
-            pass
+            else:
+                self.state = CONVERSATION_GENERAL_STATE
 
         elif self.state == FEEDBACK_STATE:
-            pass
+            for da in dialogue_acts:
+                if da['dimension'] == 'SocialObligationManagement' \
+                    and da['communicative_function'] == 'Salutation':
+                    self.state = CLOSING_STATE
 
         elif self.state == CLOSING_STATE:
-            pass
+            if (robot_exp['target'] is None) \
+                and (robot_exp['physicalAct'] == 'observing'):
+                self.reset()
 
-    def conv_is_aboutme(self, robot_exp, semantics, dialogue_acts):
+    def conv_is_aboutme(self, robot_exp, semantic, dialogue_acts):
 
         speech = robot_exp['speech']
         speaker = robot_exp['subject']
@@ -101,15 +86,15 @@ class DialogueManager():
 
         # TODO: RULES DETERMINING CONVERSATION ABOUT ME
         if speaker == 'me':
-            if 'my' in semantics[0]['subject']['text']:
+            if 'my' in semantic['subject']['text']:
                 return True
 
-            if 'i ' in semantics[0]['subject']['text'] or \
-               ' i ' in semantics[0]['subject']['text']:
+            if 'i ' in semantic['subject']['text'] or \
+               ' i ' in semantic['subject']['text']:
                return True
 
         if listener == 'me':
-            if 'you' in semantics[0]['subject']['text']:
+            if 'you' in semantic['subject']['text']:
                 return True
 
             for da in dialogue_acts:
@@ -117,18 +102,25 @@ class DialogueManager():
                     and da['communicative_function'] == 'Directive':
                     return True
 
-    def conv_is_abouthuman(self, robot_exp, semantics, dialogue_acts):
+        return False
+
+    def conv_is_abouthuman(self, robot_exp, semantic, dialogue_acts):
+
+        speech = robot_exp['speech']
+        speaker = robot_exp['subject']
+        listener = robot_exp['target']
+
         # TODO: RULES DETERMINING CONVERSATION ABOUT HUMAN
         if speaker != 'me':
-            if 'my' in semantics[0]['subject']['text']:
+            if 'my' in semantic['subject']['text']:
                 return True
 
-            if 'i ' in semantics[0]['subject']['text'] or \
-               ' i ' in semantics[0]['subject']['text']:
+            if 'i ' in semantic['subject']['text'] or \
+               ' i ' in semantic['subject']['text']:
                return True
 
         if listener != 'me':
-            if 'you' in semantics[0]['subject']['text']:
+            if 'you' in semantic['subject']['text']:
                 return True
 
             for da in dialogue_acts:
@@ -136,11 +128,11 @@ class DialogueManager():
                     and da['communicative_function'] == 'Directive':
                     return True
 
-    def conv_have_time(self, robot_exp, semantics, dialogue_acts):
-        # TODO: RULES DETERMINING CONVERSATION HAS TIME ELEMENT
-        if 'yesterday' in semantics[0]['sentence']:
-            return True
+        return False
 
+    def conv_have_time(self, temporals):
+        if len(temporals) > 0:
+            return True
         return False
 
     def reset(self):
@@ -158,14 +150,19 @@ class ExecutiveProc(Thread):
         self.awareness = awareness
         self.dialogueManager = DialogueManager()
 
-    def reason_perception(self, robot_exp, semantics, dialogue_acts):
+    def reason_perception(self, robot_exp, semantic, temporals, dialogue_acts):
         speech = robot_exp['speech']
         speaker = robot_exp['subject']
         listener = robot_exp['target']
 
         # advance conversation state
-        self.dialogueManager.advance_state(robot_exp, semantics, dialogue_acts)
+        self.dialogueManager.advance_state(robot_exp, semantic, temporals, dialogue_acts)
         dialogue_state = self.dialogueManager.get_state()
+
+        # no target to observe, robot does nothing with perception
+        if (robot_exp['target'] is None) \
+            and (robot_exp['physicalAct'] == 'observing'):
+            return
 
         # does perception receive leads to memory storage ?
 
@@ -176,7 +173,7 @@ class ExecutiveProc(Thread):
 
         if robot_respond:
             # a --- mapping concept analysis to robot response
-            #           dialogue_state + semantics + dialogue_acts
+            #           dialogue_state + semantic + dialogue_acts
             # b --- pull required information from memory
             pass    # speech = sth
         else:

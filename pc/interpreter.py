@@ -1,5 +1,7 @@
 from apis.text_semantics_analyzer import SemanticsAnalyzer
 from apis.dialogue_act.DialogueActTagger import DialogueActTagger
+from config import SUTIME_JARS
+from sutime import SUTime
 from threading import Thread
 import time
 
@@ -11,6 +13,7 @@ class Interpreter(Thread):
         self.awareness = awareness
         self.sa = SemanticsAnalyzer()
         self.da = DialogueActTagger('apis\dialogue_act\model1')
+        self.sutime = SUTime(jars=SUTIME_JARS, mark_time_ranges=True)
 
     def perceive(self, robot_exp):
         """
@@ -41,11 +44,25 @@ class Interpreter(Thread):
         # store robot experience to experiential aspect
         self.awareness.memory.save_experiential(robot_exp)
 
+        # semantic analysis
+        semantic = None
         semantics = self.sa(robot_exp['speech'])
+        if len(semantics) > 0:
+            semantic = semantics[-1]
+        else:
+            semantic = {'subject': {'text': ''},
+                        'sentence': robot_exp['speech'],
+                        'object': {'text': ''},
+                        'action': {}
+            }
+
+        # temporal analysis
+        temporals = self.sutime.parse(robot_exp['speech'])
+
         dialog_acts = self.da.dialogue_act_tag(robot_exp['speech'])
 
         # send perception to executive process
-        self.awareness.exeProc.reason_perception(robot_exp, semantics, dialog_acts)
+        self.awareness.exeProc.reason_perception(robot_exp, semantic, temporals, dialog_acts)
 
     def start(self):
         self.running = True

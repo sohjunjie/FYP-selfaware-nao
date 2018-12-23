@@ -4,7 +4,6 @@ from datetime import datetime as dt
 from apis.text_tone_analyzer import ToneAnalyzer
 from apis.geocoder_ip import get_robot_location
 from awareness import RobotAwareness
-
 import json
 import os
 import time
