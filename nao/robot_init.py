@@ -54,6 +54,7 @@ class WorldStimuliEventWatcher(ALModule):
         self.is_dialog_detection_started = False
         self.got_face = False
         self.human_tracked = None
+        self.rws_thread = cf.init_robot_websocket(self.handleRemotePCAwarenessResponse)
 
     def say(self, msg):
         self.stop_dialog_detection()
@@ -84,15 +85,12 @@ class WorldStimuliEventWatcher(ALModule):
             'speech': '',
             'ambianceEmotion': self.al_mood.ambianceState()
         }
-        # AmbianceData =
-        # {
-        # "agitationLevel" : value,
-        # "calmLevel" : value
+        # AmbianceData = {
+        #     "agitationLevel" : value,
+        #     "calmLevel" : value
         # }
         # [emotionalState, datetime, place] details capture in remote laptop
-        cf.WS.send(json.dumps(experience))
-        # robot wait for remote laptop response to decide response for human
-        response = cf.WS.recv()
+        self.rws_thread.ws.send(json.dumps(experience))
 
     def onFaceDetected(self, key, value, msg):
         if value == []:
@@ -114,9 +112,7 @@ class WorldStimuliEventWatcher(ALModule):
                 'ambianceEmotion': self.al_mood.ambianceState()
             }
             # [emotionalState, datetime, place] details capture in remote laptop
-            cf.WS.send(json.dumps(experience))
-            # robot wait for remote laptop response to decide response for human
-            response = cf.WS.recv()
+            self.rws_thread.ws.send(json.dumps(experience))
 
     def onDialogDetected(self, key, value, msg):
         if not value:
@@ -131,13 +127,37 @@ class WorldStimuliEventWatcher(ALModule):
                 'ambianceEmotion': self.al_mood.ambianceState()
             }
             # [emotionalState, datetime, place] details capture in remote laptop
-            cf.WS.send(json.dumps(experience))
-            # robot wait for remote laptop response to decide response for human
-            response = cf.WS.recv()
+            self.rws_thread.ws.send(json.dumps(experience))
 
     def onSoundLocated(self, key, value, msg):
         self.tts.say("I heard something.")
         # print "sound detected at position=", value
+
+    def handleRemotePCAwarenessResponse(self, resp):
+        """
+        Websocket callback handler that manages remote PC
+        speech response on the following dimensions.
+        1. TTS conversion of robot response
+        2. Synthesise robot response into robot experience, thus
+           generating a feedback loop to the remote PC
+        """
+        response = json.loads(resp)
+        robot_speech = response['data']
+
+        if len(robot_speech) == 0:
+            self.say('please go ahead.')
+            return
+
+        experience = {
+            'subject': 'me',
+            'target': self.human_tracked,
+            'physicalAct': 'talking',
+            'speech': robot_speech,
+            'ambianceEmotion': self.al_mood.ambianceState()
+        }
+        # [emotionalState, datetime, place] details capture in remote laptop
+        self.say(robot_speech)
+        self.rws_thread.ws.send(experience)
 
     def start_sound_detection(self):
         if not self.is_sound_detection_started:
@@ -178,7 +198,11 @@ class WorldStimuliEventWatcher(ALModule):
 
 
 if __name__ == "__main__":
-    cf.init()
+
+    logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+                        datefmt='%d-%m-%Y:%H:%M:%S',
+                        level=logging.INFO)
+
     event_broker = ALBroker("event_broker", "0.0.0.0", 0, cf.ROBOT_IP, cf.ROBOT_PORT)
     stimuliEventWatcher = WorldStimuliEventWatcher()
 
