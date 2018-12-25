@@ -1,11 +1,9 @@
-from threading import Thread
 from database.definition import Experiential, Mental, Social, Identity, \
     SocalProperties, IdentityProperties, upsert
 from pony.orm import db_session, commit
-import time
 
 
-class Memory(Thread):
+class Memory():
 
     def __init__(self, awareness):
         super().__init__()
@@ -43,17 +41,3 @@ class Memory(Thread):
         """
         upsert(SocalProperties, props)
         commit()
-
-    def start(self):
-        self.running = True
-        super().start()
-
-    def run(self):
-        self.idle()
-
-    def stop(self):
-        self.running = False
-
-    def idle(self):
-        while(self.running):
-            time.sleep(0.2)

@@ -2,11 +2,9 @@ from apis.text_semantics_analyzer import SemanticsAnalyzer
 from apis.dialogue_act.DialogueActTagger import DialogueActTagger
 from config import SUTIME_JARS
 from sutime import SUTime
-from threading import Thread
-import time
 
 
-class Interpreter(Thread):
+class Interpreter():
 
     def __init__(self, awareness):
         super().__init__()
@@ -63,17 +61,3 @@ class Interpreter(Thread):
 
         # send perception to executive process
         self.awareness.exeProc.reason_perception(robot_exp, semantic, temporals, dialog_acts)
-
-    def start(self):
-        self.running = True
-        super().start()
-
-    def run(self):
-        self.idle()
-
-    def stop(self):
-        self.running = False
-
-    def idle(self):
-        while(self.running):
-            time.sleep(0.2)

@@ -1,6 +1,3 @@
-from threading import Thread
-import time
-
 
 START_STATE = 0
 GREETING_STATE = 1
@@ -143,7 +140,7 @@ class DialogueManager():
         return self.state
 
 
-class ExecutiveProc(Thread):
+class ExecutiveProc():
 
     def __init__(self, awareness):
         super().__init__()
@@ -164,9 +161,9 @@ class ExecutiveProc(Thread):
             and (robot_exp['physicalAct'] == 'observing'):
             return
 
-        # does perception receive leads to memory storage ?
+        # 1 - does perception receive leads to memory storage ?
 
-        # does perception receive requires robot response ?
+        # 2 - does perception receive requires robot response ?
         robot_respond = False
         if robot_exp['target'] = 'me':
             robot_respond = True
@@ -178,17 +175,3 @@ class ExecutiveProc(Thread):
             pass    # speech = sth
         else:
             pass    # speech = empty
-
-    def start(self):
-        self.running = True
-        super().start()
-
-    def run(self):
-        self.idle()
-
-    def stop(self):
-        self.running = False
-
-    def idle(self):
-        while(self.running):
-            time.sleep(0.2)
