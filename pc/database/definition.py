@@ -52,6 +52,7 @@ class SocalProperties(db.Entity):
     property_value_float = Optional(float)
     property_value_datetime = Optional(datetime)
     property_value_decimal = Optional(Decimal)
+    property_value_bool = Optional(bool)
     person = Required(Social)
 
 
@@ -76,6 +77,7 @@ class IdentityProperties(db.Entity):
     property_value_float = Optional(float)
     property_value_datetime = Optional(datetime)
     property_value_decimal = Optional(Decimal)
+    property_value_bool = Optional(bool)
     person = Required(Identity)
 
 
