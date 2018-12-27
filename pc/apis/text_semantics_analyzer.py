@@ -1,10 +1,14 @@
 import json
 from watson_developer_cloud import NaturalLanguageUnderstandingV1
 from watson_developer_cloud.natural_language_understanding_v1 import Features, SemanticRolesOptions
+from watson_developer_cloud.watson_service import WatsonApiException
+
 from config import SEMANTICS_API_KEY, SEMANTICS_API_URL, SEMANTICS_API_VER
 
 """
-        from apis.text_semantics import SemanticsAnalyzer
+demo: https://natural-language-understanding-demo.ng.bluemix.net/
+
+        from apis.text_semantics_analyzer import SemanticsAnalyzer
         self.sa = SemanticsAnalyzer()
 """
 
@@ -33,8 +37,11 @@ class SemanticsAnalyzer():
         if text is None:
             return []
 
-        response = self.semantics_analyzer.analyze(
-            text=text,
-            features=Features(semantic_roles=SemanticRolesOptions())).get_result()
+        try:
+            response = self.semantics_analyzer.analyze(
+                text=text,
+                features=Features(semantic_roles=SemanticRolesOptions())).get_result()
+        except WatsonApiException as e:
+            return []
 
         return (response['semantic_roles'] if 'semantic_roles' in response else [])
