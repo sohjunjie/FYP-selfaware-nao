@@ -48,10 +48,11 @@ class Interpreter():
         if len(semantics) > 0:
             semantic = semantics[-1]
         else:
-            semantic = {'subject': {'text': ''},
-                        'sentence': robot_exp['speech'],
-                        'object': {'text': ''},
-                        'action': {}
+            semantic = {
+                'subject': {'text': ''},
+                'sentence': robot_exp['speech'],
+                'object': {'text': ''},
+                'action': {}
             }
 
         # temporal analysis

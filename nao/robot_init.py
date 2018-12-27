@@ -53,6 +53,7 @@ class WorldStimuliEventWatcher(ALModule):
         self.is_human_tracked = False
         self.is_dialog_detection_started = False
         self.got_face = False
+        self.human_spoke = False
         self.human_tracked = None
         self.rws_thread = cf.init_robot_websocket(self.handleRemotePCAwarenessResponse)
 
@@ -118,6 +119,7 @@ class WorldStimuliEventWatcher(ALModule):
         if not value:
             return
         if self.got_face and self.human_tracked:
+            self.human_spoke = True
             # scenario3: human respond to robot
             experience = {
                 'subject': self.human_tracked,
@@ -146,6 +148,9 @@ class WorldStimuliEventWatcher(ALModule):
 
         if len(robot_speech) == 0:
             self.say('please go ahead.')
+            # set time out 10s and give observing cue
+            self.human_spoke = False
+            threading.Timer(10, self.observeHuman).start()
             return
 
         experience = {
@@ -157,6 +162,22 @@ class WorldStimuliEventWatcher(ALModule):
         }
         # [emotionalState, datetime, place] details capture in remote laptop
         self.say(robot_speech)
+        self.rws_thread.ws.send(experience)
+
+    def observeHuman(self):
+        # human have spoken within t seconds threshold
+        if self.human_spoke:
+            return
+
+        # human have not spoken within t seconds threshold, send observation cue
+        # that prompts robot to lead the conversation
+        experience = {
+            'subject': 'me',
+            'target': self.human_tracked,
+            'physicalAct': 'observing',
+            'speech': '',
+            'ambianceEmotion': self.al_mood.ambianceState()
+        }
         self.rws_thread.ws.send(experience)
 
     def start_sound_detection(self):
