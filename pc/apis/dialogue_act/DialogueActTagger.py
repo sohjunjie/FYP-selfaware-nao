@@ -37,6 +37,20 @@ class DialogueActTagger:
             prev = False
 
         da = []
+
+        if sentence[:8] == 'have we ':
+            return [{'dimension': 'Task', 'communicative_function': 'PropQ'}]
+        if sentence[:7] == 'have i ':
+            return [{'dimension': 'Task', 'communicative_function': 'PropQ'}]
+        if sentence[:12] == 'good evening':
+            return [{'dimension': 'SocialObligationManagement', 'communicative_function': 'Salutation'}]
+        if sentence[:14] == 'good afternoon':
+            return [{'dimension': 'SocialObligationManagement', 'communicative_function': 'Salutation'}]
+        if sentence[:5] == 'hello':
+            return [{'dimension': 'SocialObligationManagement', 'communicative_function': 'Salutation'}]
+        if sentence[:9] == 'hey hello':
+            return [{'dimension': 'SocialObligationManagement', 'communicative_function': 'Salutation'}]
+
         utt = [sentence, prev_da]
         task_dim = self.dimension_model_task.predict_proba(DA.build_features([utt], prev=prev)[0])[0][1]
         som_dim = self.dimension_model_som.predict_proba(DA.build_features([utt], prev=prev)[0])[0][1]
