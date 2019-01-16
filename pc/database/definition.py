@@ -9,8 +9,9 @@ db.bind(provider='sqlite', filename='database.sqlite', create_db=True)
 
 
 class Experiential(db.Entity):
+    conversation_id = Required(int, default=0)
     subject = Required(str)
-    target = Optional(str)
+    target = Optional(str, nullable=True)
     physicalAct = Required(str)
     speech = Optional(str)
     ambiance_agitationLevel = Required(float)
@@ -53,6 +54,8 @@ class SocalProperties(db.Entity):
     property_value_datetime = Optional(datetime)
     property_value_decimal = Optional(Decimal)
     property_value_bool = Optional(bool)
+    created_on = Required(datetime, sql_default='CURRENT_TIMESTAMP')
+    updated_on = Required(datetime, sql_default='CURRENT_TIMESTAMP', volatile=True)
     person = Required(Social)
 
 
@@ -68,7 +71,11 @@ class IdentityProperties(db.Entity):
         (str) race              robotic
         (str) religion          free thinker
         (date) birthday         1/10/2015
+        (int) birthyear         2015
+        (int) birthmonth        october
+        (int) birthday          1
         (decimal) wealth        0.00
+        (str) name              silva
     """
     property_name = Required(str)
     property_type = Required(str)
@@ -116,16 +123,20 @@ def populate_database():
     ip1 = IdentityProperties(property_name='age', property_type='int', property_value_int=3, person=i)
     ip2 = IdentityProperties(property_name='personality', property_type='str', property_value_str='neutral', person=i)
     ip3 = IdentityProperties(property_name='goal', property_type='str', property_value_str='make friends', person=i)
-    ip4 = IdentityProperties(property_name='interest', property_type='str', property_value_str='make friends', person=i)
-    ip5 = IdentityProperties(property_name='occupation', property_type='str', property_value_str='robot', person=i)
+    ip4 = IdentityProperties(property_name='interest', property_type='str', property_value_str='making new friends', person=i)
+    ip5 = IdentityProperties(property_name='occupation', property_type='str', property_value_str='companion robot', person=i)
     ip6 = IdentityProperties(property_name='nationality', property_type='str', property_value_str='french', person=i)
     ip7 = IdentityProperties(property_name='birthplace', property_type='str', property_value_str='france', person=i)
     ip8 = IdentityProperties(property_name='religion', property_type='str', property_value_str='freethinker', person=i)
     ip9 = IdentityProperties(property_name='race', property_type='str', property_value_str='robot', person=i)
-    ipa = IdentityProperties(property_name='birthday', property_type='datetime', property_value_datetime=datetime(year=2015, month=10, day=1), person=i)
+    ipa = IdentityProperties(property_name='birthdate', property_type='datetime', property_value_datetime=datetime(year=2015, month=10, day=1), person=i)
     ipb = IdentityProperties(property_name='wealth', property_type='decimal', property_value_decimal=0.00, person=i)
+    ipc = IdentityProperties(property_name='birthyear', property_type='int', property_value_int=2015, person=i)
+    ipd = IdentityProperties(property_name='birthmonth', property_type='str', property_value_str='october', person=i)
+    ipe = IdentityProperties(property_name='birthday', property_type='int', property_value_int=1, person=i)
+    ipf = IdentityProperties(property_name='name', property_type='str', property_value_str='silva', person=i)
 
-    s = Social(name='junjie', relationship='friend')
+    s = Social(name='john', relationship='friend')
     sp1 = SocalProperties(property_name='age', property_type='int', property_value_int=25, person=s)
     sp2 = SocalProperties(property_name='personality', property_type='str', property_value_str='neutral', person=s)
     sp3 = SocalProperties(property_name='interest', property_type='str', property_value_str='robotics', person=s)
@@ -133,9 +144,13 @@ def populate_database():
     sp5 = SocalProperties(property_name='nationality', property_type='str', property_value_str='Singaporean', person=s)
     sp6 = SocalProperties(property_name='birthplace', property_type='str', property_value_str='Singapore', person=s)
     sp7 = SocalProperties(property_name='religion', property_type='str', property_value_str='freethinker', person=s)
-    ip8 = SocalProperties(property_name='race', property_type='str', property_value_str='chinese', person=s)
-    ip9 = SocalProperties(property_name='birthday', property_type='datetime', property_value_datetime=datetime(year=1993, month=9, day=17), person=s)
-    ipa = SocalProperties(property_name='wealth', property_type='decimal', property_value_decimal=10.00, person=s)
+    sp8 = SocalProperties(property_name='race', property_type='str', property_value_str='chinese', person=s)
+    sp9 = SocalProperties(property_name='birthdate', property_type='datetime', property_value_datetime=datetime(year=1993, month=9, day=17), person=s)
+    spa = SocalProperties(property_name='wealth', property_type='decimal', property_value_decimal=10.00, person=s)
+    spb = IdentityProperties(property_name='birthyear', property_type='int', property_value_int=1993, person=i)
+    spc = IdentityProperties(property_name='birthmonth', property_type='str', property_value_str='september', person=i)
+    spd = IdentityProperties(property_name='birthday', property_type='int', property_value_int=17, person=i)
+    spe = SocalProperties(property_name='name', property_type='str', property_value_str='john', person=s)
 
     commit()
 
@@ -143,7 +158,6 @@ def populate_database():
 db.generate_mapping(create_tables=True)
 
 """
-from database.definition import init_database
 from database.definition import *
 from pony.orm import *
 populate_database()
