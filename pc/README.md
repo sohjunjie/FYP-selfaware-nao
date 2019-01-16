@@ -33,5 +33,5 @@ API keys from the following IBM Watson services are required to run the program.
 | Dependencies | Solution |
 | ------------- | ------------- |
 | pip install `sutime` | [link to stackoverflow solution](https://stackoverflow.com/questions/14372706/visual-studio-cant-build-due-to-rc-exe) <br> [link to sutime full setup](https://github.com/FraBle/python-sutime) |
-| pip install `cytoolz`  | install using `.whl` file <br> i.e. `pip install cytoolz-0.9.0.1-cp36-cp36m-win_amd64.whl` |
-| pip install `ujson`  | install using `.whl` file <br> i.e. `pip install ujson-1.35-cp36-cp36m-win_amd64.whl` |
+| pip install `cytoolz`  | install using `.whl` file <br> i.e. `pip install whl/cytoolz-0.9.0.1-cp36-cp36m-win_amd64.whl` |
+| pip install `ujson`  | install using `.whl` file <br> i.e. `pip install whl/ujson-1.35-cp36-cp36m-win_amd64.whl` |
