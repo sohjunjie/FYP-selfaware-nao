@@ -12,6 +12,7 @@ class Interpreter():
         self.sa = SemanticsAnalyzer()
         self.da = DialogueActTagger('apis\dialogue_act\model1')
         self.sutime = SUTime(jars=SUTIME_JARS, mark_time_ranges=True)
+        self.prev_da = None
 
     def perceive(self, robot_exp):
         """
@@ -39,26 +40,35 @@ class Interpreter():
                                  'normalized': 'be'}
                      }]
         """
-        # store robot experience to experiential aspect
-        self.awareness.memory.save_experiential(robot_exp)
-
-        # semantic analysis
-        semantic = None
-        semantics = self.sa(robot_exp['speech'])
-        if len(semantics) > 0:
-            semantic = semantics[-1]
-        else:
-            semantic = {
-                'subject': {'text': ''},
-                'sentence': robot_exp['speech'],
-                'object': {'text': ''},
-                'action': {}
-            }
 
         # temporal analysis
         temporals = self.sutime.parse(robot_exp['speech'])
 
-        dialog_acts = self.da.dialogue_act_tag(robot_exp['speech'])
+        # dialogue act analysis
+        dialog_acts = self.da.dialogue_act_tag(robot_exp['speech'], prev_da=self.prev_da)
+        self.prev_da = dialog_acts[0]['communicative_function'] if len(dialog_acts) > 0 else None
+
+        if len(robot_exp['speech']) > 0:
+            if robot_exp['speech'][-1] != '.' or robot_exp['speech'][-1] != '?':
+                if any((x['communicative_function'] == 'SetQ' or
+                        x['communicative_function'] == 'PropQ') for x in dialog_acts):
+                    robot_exp['speech'] = robot_exp['speech'] + '?'
+                else:
+                    robot_exp['speech'] = robot_exp['speech'] + '.'
+
+        # store robot experience to experiential aspect
+        self.awareness.memory.save_experiential(robot_exp)
+
+        # semantic analysis
+        semantics = self.sa.get_semantics_from_text(robot_exp['speech'])
+        if len(semantics) == 0:
+            semantics = [{
+                'subject': {'text': ''},
+                'sentence': robot_exp['speech'],
+                'object': {'text': ''},
+                'action': {}
+            }]
+
 
         # send perception to executive process
-        self.awareness.exeProc.reason_perception(robot_exp, semantic, temporals, dialog_acts)
+        self.awareness.exeProc.reason_perception(robot_exp, semantics, temporals, dialog_acts)
