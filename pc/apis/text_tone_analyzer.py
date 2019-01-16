@@ -38,7 +38,7 @@ class ToneAnalyzer():
             "tentative": 0.0
         }
 
-        if text is None:
+        if text is None or len(text) == 0:
             return emotionalState
 
         tone_analysis = self.tone_analyzer.tone(
