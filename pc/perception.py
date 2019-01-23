@@ -4,7 +4,7 @@ from config import SUTIME_JARS
 from sutime import SUTime
 
 
-class Interpreter():
+class Perception():
 
     def __init__(self, awareness):
         super().__init__()

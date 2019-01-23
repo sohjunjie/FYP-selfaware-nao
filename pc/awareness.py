@@ -1,5 +1,5 @@
 from executive_proc import ExecutiveProc
-from interpreter import Interpreter
+from perception import Perception
 from memory import Memory
 from reaction import Reaction
 
@@ -9,8 +9,8 @@ class RobotAwareness():
 
         self.memory = Memory(self)
         self.exeProc = ExecutiveProc(self)
-        self.interpreter = Interpreter(self)
+        self.perception = Perception(self)
         self.reaction = Reaction(self, wsApp)
 
     def interpret_robot_experience(self, robot_exp):
-        self.interpreter.perceive(robot_exp)
+        self.perception.perceive(robot_exp)
