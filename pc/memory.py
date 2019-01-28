@@ -12,15 +12,15 @@ class Memory():
 
     @db_session
     def save_experiential(self, robot_exp):
-        if self.awareness.exeProc.dialogueManager.context['conversation_id'] is None:
+        if self.awareness.exeProc.dialogueManager.context['__conversation_id'] is None:
             conv_id = 0
             try:
                 conv_id = select(exp.conversation_id for exp in Experiential).max() + 1
             except:
                 pass
-            self.awareness.exeProc.dialogueManager.context['conversation_id'] = conv_id
+            self.awareness.exeProc.dialogueManager.context['__conversation_id'] = conv_id
 
-        context_conv_id = self.awareness.exeProc.dialogueManager.context['conversation_id']
+        context_conv_id = self.awareness.exeProc.dialogueManager.context['__conversation_id']
         exp = Experiential(subject=robot_exp['subject'],
                            target=robot_exp['target'],
                            physicalAct=robot_exp['physicalAct'],
@@ -41,7 +41,7 @@ class Memory():
         commit()
 
     @db_session
-    def update_social_prop(self, person_name, props):
+    def update_social_prop(self, person_name, props, set=None):
         """
         props = {
             'person': Social(name='junjie'),
@@ -60,7 +60,7 @@ class Memory():
 
         person = persons[0]
         props['person'] = person
-        sp = upsert(SocalProperties, props)
+        sp = upsert(SocalProperties, props, set=set)
         commit()
 
         return sp
@@ -72,7 +72,7 @@ class Memory():
         the experiential aspect
         """
 
-        context_conv_id = self.awareness.exeProc.dialogueManager.context['conversation_id']
+        context_conv_id = self.awareness.exeProc.dialogueManager.context['__conversation_id']
         if context_conv_id is None:
             return False
 

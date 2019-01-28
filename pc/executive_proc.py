@@ -23,6 +23,8 @@ class DialogueManager():
 
     def __init__(self, memory):
         self.memory = memory
+        self.state = None       # initial state
+        self.context = None     # mental buffer
         self.reset()
 
     def advance_state(self, robot_exp, semantic, temporals, dialogue_acts):
@@ -32,7 +34,7 @@ class DialogueManager():
             self.reset()
 
         if (not robot_exp['target'] is None) and (robot_exp['physicalAct'] == 'observing'):
-            self.context['conv_started_datetime'] = datetime.now()    # conversation started
+            self.context['__conv_started_datetime'] = datetime.now()    # conversation started
 
         if self.state == START_STATE:
             # advance to greeting state if dialogue act is salutation
@@ -40,7 +42,7 @@ class DialogueManager():
                 and x['communicative_function'] == 'Salutation') for x in dialogue_acts):
                 self.state = GREETING_STATE
                 if robot_exp['subject'] == 'me':
-                    self.context['robot_greeted'] = True
+                    self.context['__robot_greeted'] = True
 
 
         elif self.state == GREETING_STATE:
@@ -49,9 +51,9 @@ class DialogueManager():
                     and x['communicative_function'] == 'Salutation') for x in dialogue_acts):
                 self.state = FEEDFORWARD_STATE
             else:
-                # it is a saluation by the robot, robot_greeted flag raised
+                # it is a saluation by the robot, __robot_greeted flag raised
                 if robot_exp['subject'] == 'me':
-                    self.context['robot_greeted'] = True
+                    self.context['__robot_greeted'] = True
 
         elif (self.state >= FEEDFORWARD_STATE) and (self.state < FEEDBACK_STATE):
 
@@ -134,6 +136,7 @@ class DialogueManager():
             and x['communicative_function'] == 'Directive') for x in dialogue_acts):
             if listener == 'me'and any(x in semantic['object']['text'] 
                                             for x in ['my', 'i ', ' i ', 'me']):
+                # Human say "Can you tell me my name?"
                 return False
             return True
 
@@ -228,10 +231,10 @@ class DialogueManager():
                                     "evening")
 
         self.context['name'] = self.memory.get_robot_name()
-        self.context['robot_greeted'] = False
-        self.context['robot_bid_farewell'] = False
-        self.context['conv_started_datetime'] = None
-        self.context['conversation_id'] = None
+        self.context['__robot_greeted'] = False
+        self.context['__robot_farewell'] = False
+        self.context['__conv_started_datetime'] = None
+        self.context['__conversation_id'] = None
 
     def get_state(self):
         return self.state
@@ -256,8 +259,6 @@ class ExecutiveProc():
                                            temporals,
                                            dialogue_acts)
         dialogue_state = self.dialogueManager.get_state()
-
-        print('state: ', dialogue_state)
 
         # no target to observe, robot does nothing with perception
         if (robot_exp['target'] is None) \
@@ -356,10 +357,10 @@ class ExecutiveProc():
         if not any(x['communicative_function'] == 'Statement' for x in dialogue_acts):
             return      # robot learns nothing when dialogue is not a statement
 
+        conv_state = self.dialogueManager.get_state()
         for semantic in semantics:
             if semantic['action']['normalized'] == 'be':
 
-                conv_state = self.dialogueManager.get_state()
                 prop_name = utils.strip_possessive(semantic['subject']['text'])
                 prop_name = 'occupation' if prop_name == 'i' else prop_name
                 prop_value = semantic['object']['text']
@@ -370,9 +371,29 @@ class ExecutiveProc():
                     props = {
                         'property_name': prop_name,
                         'property_type': 'str',
-                        'property_value_str': prop_value
                     }
-                    success = self.awareness.memory.update_social_prop(person, props)
+                    set = { 'property_value_str': prop_value }
+                    success = self.awareness.memory.update_social_prop(person, props, set=set)
+                    if not success:
+                        print("warning: prop_name={prop_name} of {person} with value={prop_value} not saved"
+                            .format(prop_name=prop_name,
+                                    person=person,
+                                    prop_value=prop_value))
+
+            if semantic['action']['normalized'] == 'like':
+
+                prop_name = 'interest'
+                prop_name = 'occupation' if prop_name == 'i' else prop_name
+                prop_value = semantic['object']['text']
+
+                if conv_state == CONVERSATION_ABOUTHUMAN_STATE:
+                    person = robot_exp['subject']
+                    props = {
+                        'property_name': prop_name,
+                        'property_type': 'str',
+                    }
+                    set = { 'property_value_str': prop_value }
+                    success = self.awareness.memory.update_social_prop(person, props, set=set)
                     if not success:
                         print("warning: prop_name={prop_name} of {person} with value={prop_value} not saved"
                             .format(prop_name=prop_name,

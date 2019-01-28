@@ -23,7 +23,7 @@ FEEDFORWARD = [
 ]
 
 INTRO_OPEN = [
-    "my name is {name}, i am a {occupation} specialized for companionship"
+    "my name is {name}, i am a {occupation} specialized for {specialization}"
 ]
 
 INTRO_OTHER = [

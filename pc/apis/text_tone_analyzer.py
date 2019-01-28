@@ -2,6 +2,10 @@ from watson_developer_cloud import ToneAnalyzerV3
 from config import TONEANALYZER_API_KEY, TONEANALYZER_API_URL, TONEANALYZER_API_VER
 import json
 
+"""
+demo: https://tone-analyzer-demo.ng.bluemix.net/
+
+"""
 
 class ToneAnalyzer():
 

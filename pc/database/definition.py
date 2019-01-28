@@ -108,7 +108,6 @@ def upsert(cls, get, set=None):
     set = set or {}
 
     if not cls.exists(**get):
-        # make new object
         return cls(**set, **get)
     else:
         # get the existing object
@@ -125,16 +124,17 @@ def populate_database():
     ip3 = IdentityProperties(property_name='goal', property_type='str', property_value_str='make friends', person=i)
     ip4 = IdentityProperties(property_name='interest', property_type='str', property_value_str='making new friends', person=i)
     ip5 = IdentityProperties(property_name='occupation', property_type='str', property_value_str='companion robot', person=i)
-    ip6 = IdentityProperties(property_name='nationality', property_type='str', property_value_str='french', person=i)
-    ip7 = IdentityProperties(property_name='birthplace', property_type='str', property_value_str='france', person=i)
-    ip8 = IdentityProperties(property_name='religion', property_type='str', property_value_str='freethinker', person=i)
-    ip9 = IdentityProperties(property_name='race', property_type='str', property_value_str='robot', person=i)
-    ipa = IdentityProperties(property_name='birthdate', property_type='datetime', property_value_datetime=datetime(year=2015, month=10, day=1), person=i)
-    ipb = IdentityProperties(property_name='wealth', property_type='decimal', property_value_decimal=0.00, person=i)
-    ipc = IdentityProperties(property_name='birthyear', property_type='int', property_value_int=2015, person=i)
-    ipd = IdentityProperties(property_name='birthmonth', property_type='str', property_value_str='october', person=i)
-    ipe = IdentityProperties(property_name='birthday', property_type='int', property_value_int=1, person=i)
-    ipf = IdentityProperties(property_name='name', property_type='str', property_value_str='silva', person=i)
+    ip6 = IdentityProperties(property_name='specialization', property_type='str', property_value_str='companionship', person=i)
+    ip7 = IdentityProperties(property_name='nationality', property_type='str', property_value_str='french', person=i)
+    ip8 = IdentityProperties(property_name='birthplace', property_type='str', property_value_str='france', person=i)
+    ip9 = IdentityProperties(property_name='religion', property_type='str', property_value_str='freethinker', person=i)
+    ipa = IdentityProperties(property_name='race', property_type='str', property_value_str='robot', person=i)
+    ipb = IdentityProperties(property_name='birthdate', property_type='datetime', property_value_datetime=datetime(year=2015, month=10, day=1), person=i)
+    ipc = IdentityProperties(property_name='wealth', property_type='decimal', property_value_decimal=0.00, person=i)
+    ipd = IdentityProperties(property_name='birthyear', property_type='int', property_value_int=2015, person=i)
+    ipe = IdentityProperties(property_name='birthmonth', property_type='str', property_value_str='october', person=i)
+    ipf = IdentityProperties(property_name='birthday', property_type='int', property_value_int=1, person=i)
+    ipg = IdentityProperties(property_name='name', property_type='str', property_value_str='silva', person=i)
 
     s = Social(name='john', relationship='friend')
     sp1 = SocalProperties(property_name='age', property_type='int', property_value_int=25, person=s)
@@ -147,9 +147,9 @@ def populate_database():
     sp8 = SocalProperties(property_name='race', property_type='str', property_value_str='chinese', person=s)
     sp9 = SocalProperties(property_name='birthdate', property_type='datetime', property_value_datetime=datetime(year=1993, month=9, day=17), person=s)
     spa = SocalProperties(property_name='wealth', property_type='decimal', property_value_decimal=10.00, person=s)
-    spb = IdentityProperties(property_name='birthyear', property_type='int', property_value_int=1993, person=i)
-    spc = IdentityProperties(property_name='birthmonth', property_type='str', property_value_str='september', person=i)
-    spd = IdentityProperties(property_name='birthday', property_type='int', property_value_int=17, person=i)
+    spb = SocalProperties(property_name='birthyear', property_type='int', property_value_int=1993, person=s)
+    spc = SocalProperties(property_name='birthmonth', property_type='str', property_value_str='september', person=s)
+    spd = SocalProperties(property_name='birthday', property_type='int', property_value_int=17, person=s)
     spe = SocalProperties(property_name='name', property_type='str', property_value_str='john', person=s)
 
     commit()

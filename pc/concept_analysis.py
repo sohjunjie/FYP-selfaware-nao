@@ -52,7 +52,7 @@ class ConceptAnalyzer():
             if cur_speech['speech'] in concepts.COMMON_RESPONSE_MAPPINGS:
                 return concepts.COMMON_RESPONSE_MAPPINGS[cur_speech['speech']]
 
-            if not context['robot_greeted']:
+            if not context['__robot_greeted']:
                 return self.handle_greeting_response(context, cur_speech)
 
             if cur_speech['state'] == GREETING_STATE:
@@ -67,10 +67,6 @@ class ConceptAnalyzer():
 
             if len(cur_speech['semantics']) == 0:
                 return 'sorry, can you rephrase your question'
-
-            if cur_speech['speech'] == 'that is very interesting.':
-                print(semantics)
-                print(cur_speech['dialogue_acts'])
 
             semantic = max(cur_speech['semantics'], key=lambda x: utils.extract_relevant_semantic(x))
             # handle concuring to human response
@@ -99,7 +95,7 @@ class ConceptAnalyzer():
             if cur_speech['state'] == FEEDBACK_STATE:
                 return self.handle_feedback_response(context, cur_speech)
 
-            if (cur_speech['state'] == CLOSING_STATE) and (not context['robot_bid_farewell']):
+            if (cur_speech['state'] == CLOSING_STATE) and (not context['__robot_farewell']):
                 return self.handle_closing_response(context, cur_speech)
 
         context['prev_speech'], context['prev2_speech'] = cur_speech, prev_speech
@@ -208,7 +204,6 @@ class ConceptAnalyzer():
                 if semantic_act['normalized'] == "tell":
                     queryProp = utils.strip_possessive(semantic_obj['text'])
                     propVal = self.memory.query_robot(queryProp)
-                    print('prop: ', queryProp)
                     if len(propVal) == 0:
                         return 'sorry, i do not know the answer to your question'
                     else:
