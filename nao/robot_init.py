@@ -16,21 +16,21 @@ class WorldStimuliEventWatcher(ALModule):
     def __init__(self):
         ALModule.__init__(self, "stimuliEventWatcher")
 
-        self.asr = ALProxy("ALSpeechRecognition", cf.ROBOT_IP, cf.ROBOT_PORT)
-        self.asr.setLanguage("English")
+        # self.asr = ALProxy("ALSpeechRecognition", cf.ROBOT_IP, cf.ROBOT_PORT)
+        # self.asr.setLanguage("English")
         # self.asr.pause(True)
         # with open('dictionary.txt') as f:
         #     self.asr.setVocabulary(['hello', 'robot', 'cool'], False)
         # self.asr.pause(False)
-        self.al_mood = ALProxy("ALMood", cf.ROBOT_IP, cf.ROBOT_PORT)
+        # self.al_mood = ALProxy("ALMood", cf.ROBOT_IP, cf.ROBOT_PORT)
         self.dialog = ALProxy('ALDialog', cf.ROBOT_IP, cf.ROBOT_PORT)
         self.dialog.setLanguage("English")
         self.dialog_topic = self.dialog.loadTopic('/var/persistent/home/nao/HumanDialog/HumanDialog_enu.top')
         self.dialog.subscribe('myModule')
         self.dialog.activateTopic(self.dialog_topic)
-        self.basic_awareness = ALProxy("ALBasicAwareness", cf.ROBOT_IP, cf.ROBOT_PORT)
-        self.basic_awareness.setEngagementMode("FullyEngaged")
-        self.basic_awareness.startAwareness()
+        # self.basic_awareness = ALProxy("ALBasicAwareness", cf.ROBOT_IP, cf.ROBOT_PORT)
+        # self.basic_awareness.setEngagementMode("FullyEngaged")
+        # self.basic_awareness.startAwareness()
         self.motion = ALProxy("ALMotion", cf.ROBOT_IP, cf.ROBOT_PORT)
         self.motion.wakeUp()
 
@@ -84,7 +84,11 @@ class WorldStimuliEventWatcher(ALModule):
             'target': None,
             'physicalAct': 'observing',
             'speech': '',
-            'ambianceEmotion': self.al_mood.ambianceState()
+            # 'ambianceEmotion': self.al_mood.ambianceState()
+            'ambianceEmotion': {
+                "agitationLevel" : 0,
+                "calmLevel" : 0
+            }
         }
         # AmbianceData = {
         #     "agitationLevel" : value,
@@ -110,7 +114,11 @@ class WorldStimuliEventWatcher(ALModule):
                 'target': self.human_tracked,
                 'physicalAct': 'observing',
                 'speech': '',
-                'ambianceEmotion': self.al_mood.ambianceState()
+                # 'ambianceEmotion': self.al_mood.ambianceState()
+                'ambianceEmotion': {
+                    "agitationLevel" : 0,
+                    "calmLevel" : 0
+                }
             }
             # [emotionalState, datetime, place] details capture in remote laptop
             self.rws_thread.ws.send(json.dumps(experience))
@@ -126,14 +134,17 @@ class WorldStimuliEventWatcher(ALModule):
                 'target': 'me',
                 'physicalAct': 'talking',
                 'speech': value,
-                'ambianceEmotion': self.al_mood.ambianceState()
+                # 'ambianceEmotion': self.al_mood.ambianceState()
+                'ambianceEmotion': {
+                    "agitationLevel" : 0,
+                    "calmLevel" : 0
+                }
             }
             # [emotionalState, datetime, place] details capture in remote laptop
             self.rws_thread.ws.send(json.dumps(experience))
 
     def onSoundLocated(self, key, value, msg):
         self.tts.say("I heard something.")
-        # print "sound detected at position=", value
 
     def handleRemotePCAwarenessResponse(self, resp):
         """
@@ -158,7 +169,11 @@ class WorldStimuliEventWatcher(ALModule):
             'target': self.human_tracked,
             'physicalAct': 'talking',
             'speech': robot_speech,
-            'ambianceEmotion': self.al_mood.ambianceState()
+            # 'ambianceEmotion': self.al_mood.ambianceState()
+            'ambianceEmotion': {
+                "agitationLevel" : 0,
+                "calmLevel" : 0
+            }
         }
         # [emotionalState, datetime, place] details capture in remote laptop
         self.say(robot_speech)
@@ -176,7 +191,11 @@ class WorldStimuliEventWatcher(ALModule):
             'target': self.human_tracked,
             'physicalAct': 'observing',
             'speech': '',
-            'ambianceEmotion': self.al_mood.ambianceState()
+            # 'ambianceEmotion': self.al_mood.ambianceState()
+            'ambianceEmotion': {
+                "agitationLevel" : 0,
+                "calmLevel" : 0
+            }
         }
         self.rws_thread.ws.send(experience)
 
