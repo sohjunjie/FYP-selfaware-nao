@@ -16,7 +16,8 @@ cl = []
 
 class SocketHandler(websocket.WebSocketHandler):
 
-    def __init__(self):
+    def __init__(self, application, request, **kwargs):
+        super(SocketHandler, self).__init__(application, request, **kwargs)
         self.ta = ToneAnalyzer()
         self.robotAwareness = RobotAwareness(self)
 
@@ -53,26 +54,8 @@ class SocketHandler(websocket.WebSocketHandler):
             conn.write_message(json.dumps(message))
 
 
-class ApiHandler(web.RequestHandler):
-
-    @web.asynchronous
-    def get(self, *args):
-        id = self.get_argument("id")
-        value = self.get_argument("value")
-        data = {"id": id, "value": value}
-        data = json.dumps(data)
-        self.write(data)
-        self.finish()
-
-    @web.asynchronous
-    def post(self):
-        self.write(json.dumps({'success': True}))
-        self.finish()
-
 app = web.Application([
     (r'/ws', SocketHandler),
-    (r'/api', ApiHandler),
-    (r'/(.*)', web.StaticFileHandler, {'path': os.getcwd()})
 ])
 
 

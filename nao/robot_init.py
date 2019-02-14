@@ -171,7 +171,7 @@ class WorldStimuliEventWatcher(ALModule):
         }
         # [emotionalState, datetime, place] details capture in remote laptop
         self.say(robot_speech)
-        self.rws_thread.ws.send(experience)
+        self.rws_thread.ws.send(json.dumps(experience))
 
     def observeHuman(self):
         # human have spoken within t seconds threshold
@@ -191,7 +191,7 @@ class WorldStimuliEventWatcher(ALModule):
                 "calmLevel" : 0
             }
         }
-        self.rws_thread.ws.send(experience)
+        self.rws_thread.ws.send(json.dumps(experience))
 
     def start_sound_detection(self):
         if not self.is_sound_detection_started:

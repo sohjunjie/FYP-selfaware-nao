@@ -1,4 +1,4 @@
-import threading, websocket
+import time, threading, websocket
 
 
 PC_ADDR = '192.168.0.102'
@@ -11,6 +11,7 @@ def init_robot_websocket(callback):
     rws_thread = RobotWebSocket(callback)
     rws_thread.daemon = True
     rws_thread.start()
+    time.sleep(2)       # let the websocket establish connection
     return rws_thread
 
 
@@ -29,9 +30,9 @@ class RobotWebSocket(threading.Thread):
 
         # self.ws = websocket.WebSocketApp("ws://echo.websocket.org/",
         self.ws = websocket.WebSocketApp("ws://" + PC_ADDR +  ":" + PC_PORT + "/ws",
-                                         on_message = on_message,
-                                         on_error = on_error,
-                                         on_close = on_close)
+                                            on_message = on_message,
+                                            on_error = on_error,
+                                            on_close = on_close)
 
     def run(self):
 
