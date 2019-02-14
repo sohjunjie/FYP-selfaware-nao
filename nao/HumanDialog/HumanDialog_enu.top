@@ -1,4 +1,15 @@
 topic: ~HumanDialog()
 language: enu
 
-u:(how are you) $a=1
+u:(hello) $a=1
+u:(have i met you before) $a=1
+u:(can you tell me about yourself) $a=1
+u:(wow, what do you do as a companion robot) $a=1
+u:(that is very interesting) $a=1
+u:(let me introduce myself too) $a=1
+u:(my name is john, i am a student at this university) $a=1
+u:(i like being able to meet a lot of people) $a=1
+u:(my interests is making new friends) $a=1
+u:(seems like we have a lot in common) $a=1
+u:(it was nice chating with you) $a=1
+u:(yes, i got to go) $a=1

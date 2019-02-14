@@ -41,9 +41,6 @@ class WorldStimuliEventWatcher(ALModule):
         self.memory.subscribeToEvent("ALBasicAwareness/HumanLost",
                                      "stimuliEventWatcher",
                                      "onHumanLost")
-        self.memory.subscribeToEvent("ALSoundLocalization/SoundLocated",
-                                     "stimuliEventWatcher",
-                                     "onSoundLocated")
         self.memory.subscribeToEvent("FaceDetected",
                                      "stimuliEventWatcher",
                                      "onFaceDetected")
@@ -142,9 +139,6 @@ class WorldStimuliEventWatcher(ALModule):
             }
             # [emotionalState, datetime, place] details capture in remote laptop
             self.rws_thread.ws.send(json.dumps(experience))
-
-    def onSoundLocated(self, key, value, msg):
-        self.tts.say("I heard something.")
 
     def handleRemotePCAwarenessResponse(self, resp):
         """
