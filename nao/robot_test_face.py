@@ -59,7 +59,6 @@ class WorldStimuliEventWatcher(ALModule):
 
 
 if __name__ == "__main__":
-    cf.init()
     event_broker = ALBroker("event_broker", "0.0.0.0", 0, cf.ROBOT_IP, cf.ROBOT_PORT)
     global stimuliEventWatcher
     stimuliEventWatcher = WorldStimuliEventWatcher()
