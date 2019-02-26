@@ -47,6 +47,7 @@ class SocketHandler(websocket.WebSocketHandler):
         if self in cl:
             cl.remove(self)
             print('1 disconnected...')
+        self.robotAwareness.exeProc.dialogueManager.reset()
 
     def command_robot_speak(self, message):
         """ encode dictionary message command to json and forward to robot """

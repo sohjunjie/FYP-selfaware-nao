@@ -28,9 +28,9 @@ class WorldStimuliEventWatcher(ALModule):
         self.dialog_topic = self.dialog.loadTopic('/var/persistent/home/nao/HumanDialog/HumanDialog_enu.top')
         self.dialog.subscribe('myModule')
         self.dialog.activateTopic(self.dialog_topic)
-        # self.basic_awareness = ALProxy("ALBasicAwareness", cf.ROBOT_IP, cf.ROBOT_PORT)
+        self.basic_awareness = ALProxy("ALBasicAwareness", cf.ROBOT_IP, cf.ROBOT_PORT)
         # self.basic_awareness.setEngagementMode("FullyEngaged")
-        # self.basic_awareness.startAwareness()
+        self.basic_awareness.startAwareness()
         self.motion = ALProxy("ALMotion", cf.ROBOT_IP, cf.ROBOT_PORT)
         self.motion.wakeUp()
 
@@ -100,9 +100,10 @@ class WorldStimuliEventWatcher(ALModule):
             self.got_face = False
             self.human_tracked = None
         elif not self.got_face:
+            self.memory.unsubscribeToEvent("FaceDetected", "stimuliEventWatcher")
             # only speak the first time a face appears
             self.got_face = True
-            self.human_tracked = value[1][0][1][2] if value[1][0][1][2] != '' else 'stranger'
+            self.human_tracked = value[1][0][1][2] if value[1][0][1][2] != '' else 'john'
             self.say("I see you, " + self.human_tracked + ".")
 
             # scenario1: robot see human
@@ -121,6 +122,7 @@ class WorldStimuliEventWatcher(ALModule):
             self.rws_thread.ws.send(json.dumps(experience))
 
     def onDialogDetected(self, key, value, msg):
+        print value
         if not value:
             return
         if self.got_face and self.human_tracked:
@@ -149,13 +151,13 @@ class WorldStimuliEventWatcher(ALModule):
            generating a feedback loop to the remote PC
         """
         response = json.loads(resp)
-        robot_speech = response['data']
+        robot_speech = str(response['data'])
 
         if len(robot_speech) == 0:
             self.say('please go ahead.')
             # set time out 10s and give observing cue
-            self.human_spoke = False
-            threading.Timer(10, self.observeHuman).start()
+            # self.human_spoke = False
+            # threading.Timer(10, self.observeHuman).start()
             return
 
         experience = {
