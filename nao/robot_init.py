@@ -103,7 +103,7 @@ class WorldStimuliEventWatcher(ALModule):
             self.memory.unsubscribeToEvent("FaceDetected", "stimuliEventWatcher")
             # only speak the first time a face appears
             self.got_face = True
-            self.human_tracked = value[1][0][1][2] if value[1][0][1][2] != '' else 'john'
+            self.human_tracked = value[1][0][1][2] if value[1][0][1][2] != '' else 'stranger'
             self.say("I see you, " + self.human_tracked + ".")
 
             # scenario1: robot see human

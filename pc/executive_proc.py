@@ -29,12 +29,24 @@ class DialogueManager():
 
     def advance_state(self, robot_exp, semantic, temporals, dialogue_acts):
 
+        self.context['__robot_ignoreflag'] = False
+
         # reset dialogue manager if human exited
         if (robot_exp['target'] is None) and (robot_exp['physicalAct'] == 'observing'):
             self.reset()
 
-        if (not robot_exp['target'] is None) and (robot_exp['physicalAct'] == 'observing'):
+        # robot observe human as human enter robot vision
+        if (not robot_exp['target'] is None) \
+            and (robot_exp['physicalAct'] == 'observing') \
+            and (self.state == START_STATE):
             self.context['__conv_started_datetime'] = datetime.now()    # conversation started
+
+        if (not robot_exp['target'] is None) \
+            and (robot_exp['physicalAct'] == 'observing') \
+            and (self.state != START_STATE):
+            self.context['__robot_ignoreflag'] = True
+            return
+
 
         if self.state == START_STATE:
             # advance to greeting state if dialogue act is salutation
@@ -43,7 +55,6 @@ class DialogueManager():
                 self.state = GREETING_STATE
                 if robot_exp['subject'] == 'me':
                     self.context['__robot_greeted'] = True
-
 
         elif self.state == GREETING_STATE:
             # advance to feedforward state if dialogue act is no longer salutation
@@ -205,7 +216,6 @@ class DialogueManager():
         return False
 
     def is_closing_state(self, robot_exp):
-        print(robot_exp['speech'])
         closing_keywords = [
             'have to go',
             'got to go',
@@ -231,13 +241,14 @@ class DialogueManager():
                                     "evening")
 
         self.context['name'] = self.memory.get_robot_name()
-        self.context['__robot_greeted'] = False
-        self.context['__robot_farewell'] = False
-        self.context['__conv_started_datetime'] = None
-        self.context['__conversation_id'] = None
+        self.context['__robot_greeted'] = False         # has robot greeted
+        self.context['__robot_farewell'] = False        # has robot bid farewell
+        self.context['__conv_started_datetime'] = None  # datetime conversation stated
+        self.context['__conversation_id'] = None        # unique conversation id
+        self.context['__robot_ignoreflag'] = False      # should robot ignore the human input
 
     def get_state(self):
-        return self.state
+        return self.state, self.context['__robot_ignoreflag']
 
 
 class ExecutiveProc():
@@ -249,16 +260,19 @@ class ExecutiveProc():
         self.conceptAnalyzer = ConceptAnalyzer(self.awareness.memory, self.dialogueManager)
 
     def reason_perception(self, robot_exp, semantics, temporals, dialogue_acts):
-        speech = robot_exp['speech']
-        speaker = robot_exp['subject']
-        listener = robot_exp['target']
+        # speech = robot_exp['speech']
+        # speaker = robot_exp['subject']
+        # listener = robot_exp['target']
 
         # advance conversation state
         self.dialogueManager.advance_state(robot_exp,
                                            max(semantics, key=lambda x: utils.extract_relevant_semantic(x)),
                                            temporals,
                                            dialogue_acts)
-        dialogue_state = self.dialogueManager.get_state()
+        dialogue_state, ignore_flag = self.dialogueManager.get_state()
+        if ignore_flag:
+            self.awareness.reaction.speak('')
+            return
 
         # no target to observe, robot does nothing with perception
         if (robot_exp['target'] is None) \
@@ -281,8 +295,6 @@ class ExecutiveProc():
             robot_respond = True        # robot start prompt if human remain unspoken for 10s
             self.dialogueManager.context['human'] = robot_exp['target']
 
-        print(dialogue_state)
-
         if robot_respond:
             # a --- mapping concept analysis to robot response
             #           dialogue_state + semantic + dialogue_acts
@@ -303,13 +315,15 @@ class ExecutiveProc():
 
         params = re.findall(r"\{([A-Za-z0-9_ ]+)\}", response)
         params_values = []
-        if self.dialogueManager.get_state() == CONVERSATION_ABOUTME_STATE:
+        dm_state, _ = self.dialogueManager.get_state()
+
+        if dm_state == CONVERSATION_ABOUTME_STATE:
             params_values = [(key, context[key])
                                 if key in context
                                 else (key, self.awareness.memory.query_robot(key))
                              for key in params]
 
-        elif self.dialogueManager.get_state() == CONVERSATION_ABOUTHUMAN_STATE:
+        elif dm_state == CONVERSATION_ABOUTHUMAN_STATE:
             params_values = [(key, context[key])
                                 if key in context
                                 else (key, self.awareness.memory.query_human(context['human'], key))
@@ -357,7 +371,7 @@ class ExecutiveProc():
         if not any(x['communicative_function'] == 'Statement' for x in dialogue_acts):
             return      # robot learns nothing when dialogue is not a statement
 
-        conv_state = self.dialogueManager.get_state()
+        conv_state, _ = self.dialogueManager.get_state()
         for semantic in semantics:
             if semantic['action']['normalized'] == 'be':
 
