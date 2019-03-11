@@ -115,7 +115,7 @@ class Memory():
 
     @db_session
     def query_human(self, human_name, prop_name):
-        
+
         socialHuman = select(s for s in Social if s.name == human_name)[:1]
 
         if len(socialHuman) == 0:

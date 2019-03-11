@@ -37,6 +37,8 @@ class SocketHandler(websocket.WebSocketHandler):
         robot_experience['datetime'] = dt.now()
         robot_experience['place'] = get_robot_location()
 
+        print(type(robot_experience['target']))
+
         self.robotAwareness.interpret_robot_experience(robot_experience)
 
         # send_message = {}

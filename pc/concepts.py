@@ -1,5 +1,6 @@
 COMMON_RESPONSE_MAPPINGS = {
     'how are you?': 'i am fine.',
+    'thank you.': 'you are welcome.'
     # 'that is very interesting.': 'it is.',
     # 'seems like we have a lot in common.': 'we do have a lot in common.'
 }

@@ -31,7 +31,7 @@ class DialogueManager():
 
         self.context['__robot_ignoreflag'] = False
 
-        # reset dialogue manager if human exited
+        # reset dialogue manager if human exited halfway
         if (robot_exp['target'] is None) and (robot_exp['physicalAct'] == 'observing'):
             self.reset()
 
@@ -176,6 +176,9 @@ class DialogueManager():
 
     def conv_is_abouthuman(self, robot_exp, semantic, dialogue_acts):
 
+        s_act = semantic['action']
+        s_obj = semantic['object']
+
         speaker = robot_exp['subject']
         listener = robot_exp['target']
 
@@ -186,6 +189,14 @@ class DialogueManager():
                                             for x in ['my', 'i ', ' i ', 'me']):
                 return True
             return False
+
+        # if 'normalized' in s_act and \
+        #     s_act['normalized'] == 'remember' and \
+        #     any((x['dimension'] == 'Task' and x['communicative_function'] == 'PropQ') for x in dialogue_acts):
+        #     if listener == 'me'and any(x in semantic['object']['text']
+        #                                     for x in ['my', 'i ', ' i ', 'me']):
+        #         return True
+        #     return False
 
         # TODO: RULES DETERMINING CONVERSATION ABOUT HUMAN
         if speaker != 'me':
@@ -295,6 +306,7 @@ class ExecutiveProc():
             robot_respond = True        # robot start prompt if human remain unspoken for 10s
             self.dialogueManager.context['human'] = robot_exp['target']
 
+        print('ds', dialogue_state)
         if robot_respond:
             # a --- mapping concept analysis to robot response
             #           dialogue_state + semantic + dialogue_acts

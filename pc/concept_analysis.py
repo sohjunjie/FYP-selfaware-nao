@@ -87,15 +87,19 @@ class ConceptAnalyzer():
                                                        object=semantic['object']['text'])
 
             if cur_speech['state'] == CONVERSATION_ABOUTME_STATE:
+                print('here1')
                 return self.handle_conversation_aboutme(context, cur_speech)
 
             if cur_speech['state'] == CONVERSATION_ABOUTHUMAN_STATE:
+                print('here2')
                 return self.handle_conversation_abouthuman(context, cur_speech)
 
             if cur_speech['state'] == FEEDBACK_STATE:
+                print('here3')
                 return self.handle_feedback_response(context, cur_speech)
 
             if (cur_speech['state'] == CLOSING_STATE) and (not context['__robot_farewell']):
+                print('here4')
                 return self.handle_closing_response(context, cur_speech)
 
         context['prev_speech'], context['prev2_speech'] = cur_speech, prev_speech
@@ -155,6 +159,11 @@ class ConceptAnalyzer():
                     return random.choice(concepts.INTRO_OPEN)
 
             if any((x['dimension'] == 'Task' and
+                    x['communicative_function'] == 'PropQ') for x in cur_speech['dialogue_acts']):
+
+                pass
+
+            if any((x['dimension'] == 'Task' and
                     x['communicative_function'] == 'SetQ') for x in cur_speech['dialogue_acts']):
 
                 if semantic_act['normalized'] == "do" and "companion robot" in semantic_obj['text']:
@@ -168,11 +177,6 @@ class ConceptAnalyzer():
                     else:
                         return 'my {paramProp} is {paramVal}'.format(paramProp=queryProp,
                                                                      paramVal=propVal)
-
-            if any((x['dimension'] == 'Task' and
-                    x['communicative_function'] == 'PropQ') for x in cur_speech['dialogue_acts']):
-                pass
-
 
     def handle_conversation_abouthuman(self, context, cur_speech):
 
@@ -203,12 +207,25 @@ class ConceptAnalyzer():
 
                 if semantic_act['normalized'] == "tell":
                     queryProp = utils.strip_possessive(semantic_obj['text'])
-                    propVal = self.memory.query_robot(queryProp)
+                    propVal = self.memory.query_human(cur_speech['speaker'], queryProp)
                     if len(propVal) == 0:
                         return 'sorry, i do not know the answer to your question'
                     else:
                         return 'your {paramProp} is {paramVal}'.format(paramProp=queryProp,
                                                                        paramVal=propVal)
+
+            # if any((x['dimension'] == 'Task' and
+            #         x['communicative_function'] == 'PropQ') for x in cur_speech['dialogue_acts']):
+
+            #     if semantic_act['normalized'] == "remember":
+            #         queryProp = utils.strip_possessive(semantic_obj['text'])
+            #         propVal = self.memory.query_human(cur_speech['speaker'], queryProp)
+            #         if len(propVal) == 0:
+            #             return 'sorry, i do not know the answer to your question'
+            #         else:
+            #             return 'your {paramProp} is {paramVal}'.format(paramProp=queryProp,
+            #                                                            paramVal=propVal)
+
 
     def handle_feedback_response(self, context, cur_speech):
         return "oh you have to go now?"
