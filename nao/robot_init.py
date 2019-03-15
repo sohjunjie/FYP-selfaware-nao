@@ -92,6 +92,13 @@ class WorldStimuliEventWatcher(ALModule):
         #     "calmLevel" : value
         # }
         # [emotionalState, datetime, place] details capture in remote laptop
+        try:
+            self.memory.subscribeToEvent("FaceDetected",
+                                        "stimuliEventWatcher",
+                                        "onFaceDetected")
+        except RuntimeError:
+            print "Face detection already started"
+
         self.rws_thread.ws.send(json.dumps(experience))
 
     def onFaceDetected(self, key, value, msg):
