@@ -158,6 +158,15 @@ class ConceptAnalyzer():
                 if semantic_act['normalized'] == "tell" and "about yourself" in semantic_obj['text']:
                     return random.choice(concepts.INTRO_OPEN)
 
+                if semantic_act['normalized'] == "tell":
+                    queryProp = utils.strip_possessive(semantic_obj['text'])
+                    propVal = self.memory.query_robot(queryProp)
+                    if len(propVal) == 0:
+                        return 'sorry, i do not know the answer to your question'
+                    else:
+                        return 'my {paramProp} is {paramVal}'.format(paramProp=queryProp,
+                                                                       paramVal=propVal)
+
             if any((x['dimension'] == 'Task' and
                     x['communicative_function'] == 'PropQ') for x in cur_speech['dialogue_acts']):
 
@@ -185,6 +194,7 @@ class ConceptAnalyzer():
             semantic = max(cur_speech['semantics'], key=lambda x: utils.extract_relevant_semantic(x))
             semantic_act = semantic['action']
             semantic_obj = semantic['object']
+            semantic_subj = semantic['subject']
 
             if any((x['dimension'] == 'Task' and
                     x['communicative_function'] == 'Commissive') for x in cur_speech['dialogue_acts']):
@@ -194,11 +204,14 @@ class ConceptAnalyzer():
             if any((x['dimension'] == 'Task' and
                     x['communicative_function'] == 'Statement') for x in cur_speech['dialogue_acts']):
 
-                if semantic_act['normalized'] == 'be' and semantic_act['verb']['tense'] == 'present':
+                if 'name' in semantic_subj['text'] and semantic_act['normalized'] == 'be' and semantic_act['verb']['tense'] == 'present':
+                    return 'ok'
+
+                if semantic_subj['text'] == "i" and semantic_act['normalized'] == 'be' and semantic_act['verb']['tense'] == 'present':
                     resp = random.choice(concepts.COMMENT_HUMAN)
                     return resp.format(param=semantic_obj['text'])
 
-                if semantic_act['normalized'] == 'like' and semantic_act['verb']['tense'] == 'present':
+                if semantic_subj['text'] == "i" and semantic_act['normalized'] == 'like' and semantic_act['verb']['tense'] == 'present':
                     self.dialogueManager.state = CONVERSATION_ABOUTME_STATE
                     return random.choice(concepts.INTRO_LIKES)
 
@@ -213,18 +226,6 @@ class ConceptAnalyzer():
                     else:
                         return 'your {paramProp} is {paramVal}'.format(paramProp=queryProp,
                                                                        paramVal=propVal)
-
-            # if any((x['dimension'] == 'Task' and
-            #         x['communicative_function'] == 'PropQ') for x in cur_speech['dialogue_acts']):
-
-            #     if semantic_act['normalized'] == "remember":
-            #         queryProp = utils.strip_possessive(semantic_obj['text'])
-            #         propVal = self.memory.query_human(cur_speech['speaker'], queryProp)
-            #         if len(propVal) == 0:
-            #             return 'sorry, i do not know the answer to your question'
-            #         else:
-            #             return 'your {paramProp} is {paramVal}'.format(paramProp=queryProp,
-            #                                                            paramVal=propVal)
 
 
     def handle_feedback_response(self, context, cur_speech):

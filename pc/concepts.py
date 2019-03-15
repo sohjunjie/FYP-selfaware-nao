@@ -6,7 +6,8 @@ COMMON_RESPONSE_MAPPINGS = {
 }
 
 COMMON_FEEDBACK = [
-    'it was nice chating with you.'
+    'it was nice chating with you.',
+    'nice chating with you.'
 ]
 
 GREETING = [

@@ -190,14 +190,6 @@ class DialogueManager():
                 return True
             return False
 
-        # if 'normalized' in s_act and \
-        #     s_act['normalized'] == 'remember' and \
-        #     any((x['dimension'] == 'Task' and x['communicative_function'] == 'PropQ') for x in dialogue_acts):
-        #     if listener == 'me'and any(x in semantic['object']['text']
-        #                                     for x in ['my', 'i ', ' i ', 'me']):
-        #         return True
-        #     return False
-
         # TODO: RULES DETERMINING CONVERSATION ABOUT HUMAN
         if speaker != 'me':
             if 'my' in semantic['subject']['text']:
@@ -222,6 +214,7 @@ class DialogueManager():
         return False
 
     def is_feedback_state(self, robot_exp):
+
         if robot_exp['speech'] in concepts.COMMON_FEEDBACK:
             return True
         return False
@@ -306,7 +299,6 @@ class ExecutiveProc():
             robot_respond = True        # robot start prompt if human remain unspoken for 10s
             self.dialogueManager.context['human'] = robot_exp['target']
 
-        print('ds', dialogue_state)
         if robot_respond:
             # a --- mapping concept analysis to robot response
             #           dialogue_state + semantic + dialogue_acts
@@ -316,6 +308,7 @@ class ExecutiveProc():
                                                                 self.dialogueManager.context,
                                                                 temporals,
                                                                 robot_exp)
+
 
             # b --- pull required information from memory
             response = self.resolve_response(response, self.dialogueManager.context)
