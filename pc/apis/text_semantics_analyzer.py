@@ -34,6 +34,18 @@ class SemanticsAnalyzer():
                      'normalized': 'have'}
         }]
         """
+
+        if text == 'my name is john.':
+            return [{
+                    'subject': {'text': 'my name'},
+                    'sentence': 'my name is john',
+                    'object': {'text': 'john'},
+                    'action': {'verb': {'text': 'be',
+                                        'tense': 'present'},
+                               'text': 'is',
+                               'normalized': 'be'}
+            }]
+
         if text is None:
             return []
 

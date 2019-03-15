@@ -38,6 +38,8 @@ class DialogueActTagger:
 
         da = []
 
+        if sentence[:8] == 'can you ':
+            return [{'dimension': 'Task', 'communicative_function': 'Directive'}]
         if sentence[:8] == 'have we ':
             return [{'dimension': 'Task', 'communicative_function': 'PropQ'}]
         if sentence[:7] == 'have i ':
