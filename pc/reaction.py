@@ -1,3 +1,5 @@
+import logging
+
 
 class Reaction():
 
@@ -7,6 +9,11 @@ class Reaction():
         self.wsApp = wsApp
 
     def speak(self, speech):
+
+        logging.info("Awareness Reaction: Received robot response")
+
         send_message = {}
         send_message['data'] = speech
+
+        logging.info("Awareness Reaction: Command Nao Action: Speak")
         self.wsApp.command_robot_speak(send_message)

@@ -87,19 +87,15 @@ class ConceptAnalyzer():
                                                        object=semantic['object']['text'])
 
             if cur_speech['state'] == CONVERSATION_ABOUTME_STATE:
-                print('here1')
                 return self.handle_conversation_aboutme(context, cur_speech)
 
             if cur_speech['state'] == CONVERSATION_ABOUTHUMAN_STATE:
-                print('here2')
                 return self.handle_conversation_abouthuman(context, cur_speech)
 
             if cur_speech['state'] == FEEDBACK_STATE:
-                print('here3')
                 return self.handle_feedback_response(context, cur_speech)
 
             if (cur_speech['state'] == CLOSING_STATE) and (not context['__robot_farewell']):
-                print('here4')
                 return self.handle_closing_response(context, cur_speech)
 
         context['prev_speech'], context['prev2_speech'] = cur_speech, prev_speech

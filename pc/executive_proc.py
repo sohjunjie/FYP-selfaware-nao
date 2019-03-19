@@ -1,4 +1,6 @@
+import logging
 import re
+
 from datetime import datetime
 from concept_analysis import ConceptAnalyzer
 import concepts
@@ -254,6 +256,34 @@ class DialogueManager():
     def get_state(self):
         return self.state, self.context['__robot_ignoreflag']
 
+    def get_readable_state(self):
+        if self.state == START_STATE:
+            return 'START_STATE'
+        if self.state == GREETING_STATE:
+            return 'GREETING_STATE'
+        if self.state == FEEDFORWARD_STATE:
+            return 'FEEDFORWARD_STATE'
+        if self.state == CONVERSATION_STATE:
+            return 'CONVERSATION_STATE'
+        if self.state == CONVERSATION_EXCEPT_STATE:
+            return 'CONVERSATION_EXCEPT_STATE'
+        if self.state == CONVERSATION_ABOUTME_STATE:
+            return 'CONVERSATION_ABOUTME_STATE'
+        if self.state == CONVERSATION_MYACTIVITY_STATE:
+            return 'CONVERSATION_MYACTIVITY_STATE'
+        if self.state == CONVERSATION_GENERAL_STATE:
+            return 'CONVERSATION_GENERAL_STATE'
+        if self.state == CONVERSATION_ABOUTHUMAN_STATE:
+            return 'CONVERSATION_ABOUTHUMAN_STATE'
+        if self.state == CONVERSATION_HUMANACTIVITY_STATE:
+            return 'CONVERSATION_HUMANACTIVITY_STATE'
+        if self.state == FEEDBACK_STATE:
+            return 'FEEDBACK_STATE'
+        if self.state == CLOSING_STATE:
+            return 'CLOSING_STATE'
+        if self.state == END_STATE:
+            return 'END_STATE'
+
 
 class ExecutiveProc():
 
@@ -264,16 +294,19 @@ class ExecutiveProc():
         self.conceptAnalyzer = ConceptAnalyzer(self.awareness.memory, self.dialogueManager)
 
     def reason_perception(self, robot_exp, semantics, temporals, dialogue_acts):
-        # speech = robot_exp['speech']
-        # speaker = robot_exp['subject']
-        # listener = robot_exp['target']
 
-        # advance conversation state
+        logging.info("Awareness ExecProcess: Received perceived robot experience")
+        logging.info("Awareness ExecProcess: Advancing Conversation state")
+
         self.dialogueManager.advance_state(robot_exp,
                                            max(semantics, key=lambda x: utils.extract_relevant_semantic(x)),
                                            temporals,
                                            dialogue_acts)
+
+        logging.info("Awareness ExecProcess: Current conversation state = " + self.dialogueManager.get_readable_state())
+
         dialogue_state, ignore_flag = self.dialogueManager.get_state()
+
         if ignore_flag:
             self.awareness.reaction.speak('')
             return
@@ -283,6 +316,7 @@ class ExecutiveProc():
             and (robot_exp['physicalAct'] == 'observing'):
             return
 
+        logging.info("Awareness ExecProcess: Learning information from human dialog")
         # 1 - does perception receive leads to memory storage ?
         self.learn_from_experience(robot_exp, semantics, dialogue_acts, temporals)
 
@@ -302,6 +336,8 @@ class ExecutiveProc():
         if robot_respond:
             # a --- mapping concept analysis to robot response
             #           dialogue_state + semantic + dialogue_acts
+            logging.info("Awareness ExecProcess: Mapping conversation state, semantics, " +
+                         "dialog act, robot experience, and context to response")
             response = self.conceptAnalyzer.concept_to_response(dialogue_state,
                                                                 semantics,
                                                                 dialogue_acts,
@@ -309,11 +345,19 @@ class ExecutiveProc():
                                                                 temporals,
                                                                 robot_exp)
 
+            logging.info("Awareness ExecProcess: Generated response: " + response)
+            logging.info("Awareness ExecProcess: Resolving missing context in response...")
 
             # b --- pull required information from memory
             response = self.resolve_response(response, self.dialogueManager.context)
+
+            logging.info("Awareness ExecProcess: Response resolved with memory and context")
+            logging.info("Awareness ExecProcess: Resolved response: " + response)
+
+            logging.info("Awareness ExecProcess: Sending resolved response to reaction...")
             self.awareness.reaction.speak(response)
         else:
+            logging.info("Awareness ExecProcess: Sending empty response to reaction...")
             self.awareness.reaction.speak('')
 
     def resolve_response(self, response, context):
@@ -398,6 +442,11 @@ class ExecutiveProc():
                             .format(prop_name=prop_name,
                                     person=person,
                                     prop_value=prop_value))
+                    else:
+                        logging.info("Awareness ExecProcess: Learned <human:{person}> {prop_name} is {prop_value}"
+                            .format(prop_name=prop_name,
+                                    person=person,
+                                    prop_value=prop_value))
 
             if semantic['action']['normalized'] == 'like':
 
@@ -415,6 +464,11 @@ class ExecutiveProc():
                     success = self.awareness.memory.update_social_prop(person, props, set=set)
                     if not success:
                         print("warning: prop_name={prop_name} of {person} with value={prop_value} not saved"
+                            .format(prop_name=prop_name,
+                                    person=person,
+                                    prop_value=prop_value))
+                    else:
+                        logging.info("Awareness ExecProcess: Learned <human:{person}> {prop_name} is {prop_value}"
                             .format(prop_name=prop_name,
                                     person=person,
                                     prop_value=prop_value))

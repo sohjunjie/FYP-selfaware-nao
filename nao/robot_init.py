@@ -47,12 +47,19 @@ class WorldStimuliEventWatcher(ALModule):
 
         self.tts = ALProxy("ALTextToSpeech", cf.ROBOT_IP, cf.ROBOT_PORT)
         self.is_sound_detection_started = True
+        self.is_face_detection_started = True
         self.is_human_tracked = False
         self.is_dialog_detection_started = False
         self.got_face = False
         self.human_spoke = False
         self.human_tracked = None
         self.rws_thread = cf.init_robot_websocket(self.handleRemotePCAwarenessResponse)
+
+        print ""
+        print ""
+        print ""
+        print ""
+        print "==========Initialized=========="
 
     def say(self, msg):
         self.stop_dialog_detection()
@@ -65,13 +72,13 @@ class WorldStimuliEventWatcher(ALModule):
         self.stop_sound_detection()
         self.start_dialog_detection()
         if value >= 0:
-            logging.info("got HumanTracked: detected person with ID:" + str(value))
+            logging.info("Got HumanTracked: detected person with ID:" + str(value))
 
     def onHumanLost(self, key, value, msg):
         """ callback for event HumanLost """
         self.is_human_tracked = False
         self.human_tracked = None
-        logging.info("got HumanLost: lost human" + str(value))
+        logging.info("Got HumanLost: lost human with ID:" + str(value))
         self.stop_dialog_detection()
         self.start_sound_detection()
 
@@ -92,13 +99,9 @@ class WorldStimuliEventWatcher(ALModule):
         #     "calmLevel" : value
         # }
         # [emotionalState, datetime, place] details capture in remote laptop
-        try:
-            self.memory.subscribeToEvent("FaceDetected",
-                                        "stimuliEventWatcher",
-                                        "onFaceDetected")
-        except RuntimeError:
-            print "Face detection already started"
+        self.start_face_detection()
 
+        logging.info("Got HumanLost: Informing Awareness that human exited")
         self.rws_thread.ws.send(json.dumps(experience))
 
     def onFaceDetected(self, key, value, msg):
@@ -107,11 +110,13 @@ class WorldStimuliEventWatcher(ALModule):
             self.got_face = False
             self.human_tracked = None
         elif not self.got_face:
-            self.memory.unsubscribeToEvent("FaceDetected", "stimuliEventWatcher")
             # only speak the first time a face appears
+            self.stop_face_detection()
             self.got_face = True
             self.human_tracked = value[1][0][1][2] if value[1][0][1][2] != '' else 'stranger'
             self.say("I see you, " + self.human_tracked + ".")
+
+            logging.info("Face detected: Detected human: " + self.human_tracked)
 
             # scenario1: robot see human
             experience = {
@@ -126,13 +131,16 @@ class WorldStimuliEventWatcher(ALModule):
                 }
             }
             # [emotionalState, datetime, place] details capture in remote laptop
+            logging.info("Face detected: Informing Awareness that <human:" + self.human_tracked + "> was found")
             self.rws_thread.ws.send(json.dumps(experience))
 
     def onDialogDetected(self, key, value, msg):
         print value
         if not value:
+            logging.info("Dialog detected: Unable to detect correctly")
             return
         if self.got_face and self.human_tracked:
+            logging.info("Dialog detected: " + value)
             self.human_spoke = True
             # scenario3: human respond to robot
             experience = {
@@ -147,6 +155,7 @@ class WorldStimuliEventWatcher(ALModule):
                 }
             }
             # [emotionalState, datetime, place] details capture in remote laptop
+            logging.info("Dialog detected: Sending detected dialog to Awareness")
             self.rws_thread.ws.send(json.dumps(experience))
 
     def handleRemotePCAwarenessResponse(self, resp):
@@ -161,12 +170,14 @@ class WorldStimuliEventWatcher(ALModule):
         robot_speech = str(response['data'])
 
         if len(robot_speech) == 0:
+            logging.info("Websocket Handler: Awareness awaiting human dialog")
             self.say('please go ahead.')
             # set time out 10s and give observing cue
             # self.human_spoke = False
             # threading.Timer(10, self.observeHuman).start()
             return
 
+        logging.info("Websocket Handler: Awareness generated response: " + robot_speech)
         experience = {
             'subject': 'me',
             'target': self.human_tracked,
@@ -180,6 +191,8 @@ class WorldStimuliEventWatcher(ALModule):
         }
         # [emotionalState, datetime, place] details capture in remote laptop
         self.say(robot_speech)
+
+        logging.info("Websocket Handler: Feeding generated response to Awareness")
         self.rws_thread.ws.send(json.dumps(experience))
 
     def observeHuman(self):
@@ -201,6 +214,21 @@ class WorldStimuliEventWatcher(ALModule):
             }
         }
         self.rws_thread.ws.send(json.dumps(experience))
+
+    def start_face_detection(self):
+        if not self.is_face_detection_started:
+            try:
+                self.memory.subscribeToEvent("FaceDetected",
+                                            "stimuliEventWatcher",
+                                            "onFaceDetected")
+            except RuntimeError:
+                print "Face detection already started"
+            self.is_face_detection_started = True
+
+    def stop_face_detection(self):
+        if self.is_face_detection_started:
+            self.memory.unsubscribeToEvent("FaceDetected", "stimuliEventWatcher")
+            self.is_face_detection_started = False
 
     def start_sound_detection(self):
         if not self.is_sound_detection_started:

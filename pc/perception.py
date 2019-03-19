@@ -1,3 +1,5 @@
+import logging
+
 from apis.text_semantics_analyzer import SemanticsAnalyzer
 from apis.dialogue_act.DialogueActTagger import DialogueActTagger
 from config import SUTIME_JARS
@@ -41,10 +43,12 @@ class Perception():
                      }]
         """
 
-        # temporal analysis
+        logging.info("Awareness Perception: Received robot experience")
+
+        logging.info("Awareness Perception: Performing temporal analysis on dialog")
         temporals = self.sutime.parse(robot_exp['speech'])
 
-        # dialogue act analysis
+        logging.info("Awareness Perception: Performing Dialog Act Tagging")
         dialog_acts = self.da.dialogue_act_tag(robot_exp['speech'], prev_da=self.prev_da)
         self.prev_da = dialog_acts[0]['communicative_function'] if len(dialog_acts) > 0 else None
 
@@ -56,10 +60,10 @@ class Perception():
                 else:
                     robot_exp['speech'] = robot_exp['speech'] + '.'
 
-        # store robot experience to experiential aspect
+        logging.info("Awareness Perception: Record robot experience to memory")
         self.awareness.memory.save_experiential(robot_exp)
 
-        # semantic analysis
+        logging.info("Awareness Perception: Performing Semantic analysis")
         semantics = self.sa.get_semantics_from_text(robot_exp['speech'])
         if len(semantics) == 0:
             semantics = [{
@@ -69,6 +73,5 @@ class Perception():
                 'action': {}
             }]
 
-
-        # send perception to executive process
+        logging.info("Awareness Perception: Sending perceptions to executive process...")
         self.awareness.exeProc.reason_perception(robot_exp, semantics, temporals, dialog_acts)

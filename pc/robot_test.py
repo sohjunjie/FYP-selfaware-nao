@@ -3,9 +3,14 @@ from apis.text_tone_analyzer import ToneAnalyzer
 from apis.geocoder_ip import get_robot_location
 from awareness import RobotAwareness
 import json
+import logging
 import os
 import time
 
+
+logging.basicConfig(format='%(asctime)s,%(msecs)d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+                    datefmt='%d-%m-%Y:%H:%M:%S',
+                    level=logging.INFO)
 
 human_tracked = 'john'
 ta = ToneAnalyzer()
