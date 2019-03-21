@@ -252,6 +252,7 @@ class DialogueManager():
         self.context['__conv_started_datetime'] = None  # datetime conversation stated
         self.context['__conversation_id'] = None        # unique conversation id
         self.context['__robot_ignoreflag'] = False      # should robot ignore the human input
+        self.context['__human_speeches'] = []           # past human speeches
 
     def get_state(self):
         return self.state, self.context['__robot_ignoreflag']
@@ -345,7 +346,19 @@ class ExecutiveProc():
                                                                 temporals,
                                                                 robot_exp)
 
-            logging.info("Awareness ExecProcess: Generated response: " + response)
+            if robot_exp['target'] == 'me' and \
+               robot_exp['speech'] != '' and \
+               robot_exp['speech'][-1] == '?' and \
+               robot_exp['speech'] in self.dialogueManager.context['__human_speeches']:
+                response = 'as i told you, ' + response
+
+            if robot_exp['target'] == 'me' and \
+               robot_exp['speech'] != '' and \
+               robot_exp['speech'][-1] == '?' and \
+               robot_exp['speech'] not in self.dialogueManager.context['__human_speeches']:
+                self.dialogueManager.context['__human_speeches'].append(robot_exp['speech'])
+
+            logging.info("Awareness ExecProcess: Generated response: " + str(response))
             logging.info("Awareness ExecProcess: Resolving missing context in response...")
 
             # b --- pull required information from memory
