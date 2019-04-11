@@ -147,8 +147,8 @@ class DialogueManager():
         # if dialogue act is a question, check semantic object for my, i, me, you,
         if any((x['dimension'] == 'Task' \
             and x['communicative_function'] == 'Directive') for x in dialogue_acts):
-            if listener == 'me'and any(x in semantic['object']['text'] 
-                                            for x in ['my', 'i ', ' i ', 'me']):
+            tmp_tokens = set(semantic['object']['text'].split())
+            if listener == 'me'and len(tmp_tokens & set(['my', 'i ', ' i ', 'me'])) > 0:
                 # Human say "Can you tell me my name?"
                 return False
             return True
@@ -187,8 +187,8 @@ class DialogueManager():
         # if dialogue act is a question, check semantic object for my, i, me, you,
         if any((x['dimension'] == 'Task' \
             and x['communicative_function'] == 'Directive') for x in dialogue_acts):
-            if listener == 'me'and any(x in semantic['object']['text']
-                                            for x in ['my', 'i ', ' i ', 'me']):
+            tmp_tokens = set(semantic['object']['text'].split())
+            if listener == 'me'and len(tmp_tokens & set(['my', 'i ', ' i ', 'me'])) > 0:
                 return True
             return False
 
@@ -360,6 +360,9 @@ class ExecutiveProc():
 
             logging.info("Awareness ExecProcess: Generated response: " + str(response))
             logging.info("Awareness ExecProcess: Resolving missing context in response...")
+
+            if response is None:
+                response = "can you rephrase your sentence"
 
             # b --- pull required information from memory
             response = self.resolve_response(response, self.dialogueManager.context)
