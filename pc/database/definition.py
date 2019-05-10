@@ -117,6 +117,7 @@ def upsert(cls, get, set=None):
         return obj
 
 
+@db_session
 def populate_database():
     i = Identity(name='silva')
     ip1 = IdentityProperties(property_name='age', property_type='int', property_value_int=3, person=i)
@@ -151,6 +152,9 @@ def populate_database():
     spc = SocalProperties(property_name='birthmonth', property_type='str', property_value_str='september', person=s)
     spd = SocalProperties(property_name='birthday', property_type='int', property_value_int=17, person=s)
     spe = SocalProperties(property_name='name', property_type='str', property_value_str='john', person=s)
+
+    s1 = Social(name='tom', relationship='friend')
+    s1 = Social(name='jack', relationship='friend')
 
     commit()
 

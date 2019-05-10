@@ -1,7 +1,7 @@
 import time, threading, websocket
 
 
-PC_ADDR = '192.168.0.102'
+PC_ADDR = '192.168.0.101'
 PC_PORT = '8888'
 ROBOT_IP = '127.0.0.1'
 ROBOT_PORT = 9559

@@ -69,7 +69,7 @@ class WorldStimuliEventWatcher(ALModule):
     def onHumanTracked(self, key, value, msg):
         """ callback for event HumanTracked """
         self.is_human_tracked = True
-        self.stop_sound_detection()
+        # self.stop_sound_detection()
         self.start_dialog_detection()
         if value >= 0:
             logging.info("Got HumanTracked: detected person with ID:" + str(value))
@@ -80,7 +80,7 @@ class WorldStimuliEventWatcher(ALModule):
         self.human_tracked = None
         logging.info("Got HumanLost: lost human with ID:" + str(value))
         self.stop_dialog_detection()
-        self.start_sound_detection()
+        # self.start_sound_detection()
 
         # scenario5: human leaves conversation
         experience = {
@@ -171,7 +171,7 @@ class WorldStimuliEventWatcher(ALModule):
 
         if len(robot_speech) == 0:
             logging.info("Websocket Handler: Awareness awaiting human dialog")
-            self.say('please go ahead.')
+            # self.say('please go ahead.')
             # set time out 10s and give observing cue
             # self.human_spoke = False
             # threading.Timer(10, self.observeHuman).start()
