@@ -323,6 +323,7 @@ class ExecutiveProc():
 
 
         # 2 - does perception receive requires robot response ?
+        # Note: expectation-response comparison is not implemented in this program
         robot_respond = False
         if robot_exp['target'] == 'me':
             robot_respond = True

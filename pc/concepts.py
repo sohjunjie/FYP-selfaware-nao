@@ -52,35 +52,3 @@ CLOSING = [
     "bye",
     "goodbye"
 ]
-
-# a = {
-#     "feedforward" : {
-#         "active" : [
-#             "how are you",
-#             "what are you doing here",
-#             "the weather sure is nice today"
-#         ],
-#         "passive" : [
-#             "i am fine, thank you"
-#         ]
-#     },
-#     "introduction" : [
-#         "my name is {name} and i am {age} years old",
-#         "i am from {nationality}",
-#         "i work as a {occupation}",
-#         "my religion is {religion}",
-#         "i am born in {birthyear}"
-#     ],
-#     "feedback" : [
-#         "it was nice talking to you"
-#     ],
-#     "closing" : [
-#         "take care",
-#         "i need to get going",
-#         "i got to go now",
-#         "have a good day",
-#         "see you around",
-#         "bye",
-#         "goodbye"
-#     ]
-# }
