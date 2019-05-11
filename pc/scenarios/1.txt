@@ -1,0 +1,32 @@
+
+
+
+#	CONVERSATION LINES									STATES
+
+1	H: (human entered)									Start
+2	H: hello										Greeting
+3	R: hello john										Greeting
+4	H: have i met you before								Feedforward
+5	R: no, i believe this is the first time we have met					Feedforward
+6	H: can you tell me about yourself							About me
+7	R: my name is silva, i am a cargiving robot specialized for companionship		About me
+8	H: wow, what do you do as a companion robot						About me
+9	R: my duty is caring for someone who needs caring on a day to day basis			About me
+10	H: that is very interesting								About me
+11	R: it is very interesting								About me
+12	H: let me introduce myself too								About human
+13	R: okay											About human
+14	H: my name is john, i am a student at this university					About human
+15	R: what do you like about being a student at this university				About human
+16	H: i like being able to meet a lot of people						About human
+17	R: my interests is making new friends							About me
+18	H: seems like we have a lot in common							About me
+19	R: we do have a lot in common								About me
+20	H: it was nice chating with you								Feedback
+21	R: oh you have to go now								Feedback
+22	H: yes, i got to go									Closing
+23	R: have a nice day									Closing
+24	H: (human exited)									End
+
+
+

@@ -1,0 +1,19 @@
+
+
+
+#	CONVERSATION LINES							STATES
+
+1	H: (human entered)							Start
+2	H: hello								Greeting
+3	R: hello john								Greeting
+4	H: how are you								Feedforward
+5	R: i am fine								Feedforward
+6	H: can you tell me my occupation					About human
+7	R: your occupation is a student at this university			About human
+8	H: thank you								General
+9	R: you are welcome							General
+10	H: i got to go								Closing
+11	R: Goodbye								Closing
+12	H: (Human Exited)							Closing
+
+
