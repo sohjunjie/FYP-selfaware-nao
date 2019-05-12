@@ -28,10 +28,10 @@ class Experiential(db.Entity):
     exp_datetime = Required(datetime)
 
 
-class Mental(db.Entity):
-    goal = Required(str)
-    status = Required(str)
-    goal_datetime = Required(datetime)
+# class Mental(db.Entity):
+#     goal = Required(str)
+#     status = Required(str)
+#     goal_datetime = Required(datetime)
 
 
 class Social(db.Entity):
